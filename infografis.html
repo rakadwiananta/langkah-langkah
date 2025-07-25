@@ -561,6 +561,38 @@
                 color: var(--red-primary);
             }
         }
+
+        /* Tambahan untuk mencegah teks keluar border di mobile */
+        .section-content, .timeline-desc, .bio-value, .bio-label, .family-name, .family-relation, .achievement-label, .award-content h4, .award-content p, .leadership-title, .leadership-desc, .footer-text, .footer-source, .subtitle, .main-title, .quote-text {
+            word-break: break-word;
+            overflow-wrap: break-word;
+        }
+        
+        .section-content, .timeline, .bio-grid, .achievement-grid, .awards-grid, .leadership-grid {
+            overflow-x: auto;
+        }
+        
+        /* Responsive font-size untuk mobile agar tidak overflow */
+        @media (max-width: 400px) {
+            .main-title {
+                font-size: 22px;
+            }
+            .subtitle {
+                font-size: 12px;
+            }
+            .section-header {
+                font-size: 14px;
+            }
+            .quote-text {
+                font-size: 16px;
+            }
+            .timeline-title, .leadership-title {
+                font-size: 13px;
+            }
+            .timeline-desc, .leadership-desc, .bio-value, .bio-label, .family-name, .family-relation, .achievement-label, .award-content h4, .award-content p, .footer-text, .footer-source {
+                font-size: 11px;
+            }
+        }
     </style>
 </head>
 <body>
