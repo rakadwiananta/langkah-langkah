@@ -577,11 +577,15 @@
         <!-- Photo Section -->
         <section class="photo-section">
             <div class="photo-wrapper">
-                <div class="photo-frame">
-                    <div class="photo-placeholder">
+                <div class="photo-frame" id="photoFrame">
+                    <div class="photo-placeholder" id="photoPlaceholder">
                         Masukkan Foto<br>Joko Widodo<br>Di Sini
                     </div>
                 </div>
+            </div>
+            <div style="margin-top: 12px;">
+                <a href="#" id="importPhotoLink" style="color: var(--red-primary); text-decoration: underline; font-weight: 600; font-size: 14px;">Impor Foto</a>
+                <input type="file" id="photoInput" accept="image/*" style="display:none">
             </div>
         </section>
         
@@ -778,4 +782,26 @@
         </footer>
     </div>
 </body>
+<script>
+    const importPhotoLink = document.getElementById('importPhotoLink');
+    const photoInput = document.getElementById('photoInput');
+    const photoFrame = document.getElementById('photoFrame');
+    const photoPlaceholder = document.getElementById('photoPlaceholder');
+
+    importPhotoLink.addEventListener('click', function(e) {
+        e.preventDefault();
+        photoInput.click();
+    });
+
+    photoInput.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file && file.type.startsWith('image/')) {
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                photoFrame.innerHTML = `<img src="${evt.target.result}" alt="Foto Joko Widodo" style="width:100%;height:100%;object-fit:cover;">`;
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+</script>
 </html>
