@@ -1,0 +1,781 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#DC2626">
+    <title>Infografis Joko Widodo - Mobile First</title>
+    
+    <style>
+        /* Reset and Base Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        /* Import Google Fonts */
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&display=swap');
+        
+        /* CSS Variables */
+        :root {
+            --red-primary: #DC2626;
+            --red-dark: #991B1B;
+            --red-light: #FEE2E2;
+            --black: #1F2937;
+            --gray-dark: #374151;
+            --gray-light: #F3F4F6;
+            --white: #FFFFFF;
+            --gold: #F59E0B;
+            --gold-light: #FEF3C7;
+            
+            /* Spacing */
+            --space-xs: 8px;
+            --space-sm: 12px;
+            --space-md: 16px;
+            --space-lg: 24px;
+            --space-xl: 32px;
+            --space-2xl: 48px;
+            
+            /* Border Radius */
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            --radius-xl: 24px;
+            
+            /* Shadows */
+            --shadow-sm: 0 2px 4px rgba(0,0,0,0.1);
+            --shadow-md: 0 4px 12px rgba(0,0,0,0.15);
+            --shadow-lg: 0 8px 24px rgba(0,0,0,0.2);
+        }
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: var(--white);
+            color: var(--black);
+            line-height: 1.6;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        
+        /* Container */
+        .container {
+            width: 100%;
+            max-width: 100%;
+            background: var(--white);
+            position: relative;
+        }
+        
+        /* Header Section */
+        .header {
+            background: linear-gradient(135deg, var(--red-primary) 0%, var(--red-dark) 100%);
+            padding: var(--space-lg) var(--space-md);
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 1px, transparent 1px);
+            background-size: 20px 20px;
+            transform: rotate(45deg);
+            pointer-events: none;
+        }
+        
+        .header-content {
+            position: relative;
+            z-index: 2;
+        }
+        
+        .logo {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--white);
+            opacity: 0.8;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: var(--space-lg);
+        }
+        
+        .main-title {
+            font-size: 32px;
+            font-weight: 900;
+            color: var(--white);
+            line-height: 1.2;
+            margin-bottom: var(--space-sm);
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        .subtitle {
+            font-size: 14px;
+            color: var(--white);
+            opacity: 0.9;
+            line-height: 1.5;
+            max-width: 280px;
+            margin: 0 auto;
+        }
+        
+        /* Photo Section */
+        .photo-section {
+            padding: var(--space-lg) var(--space-md);
+            text-align: center;
+            background: var(--gray-light);
+        }
+        
+        .photo-wrapper {
+            display: inline-block;
+            position: relative;
+            padding: var(--space-sm);
+            background: var(--gold);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-lg);
+        }
+        
+        .photo-frame {
+            width: 200px;
+            height: 250px;
+            background: var(--white);
+            border-radius: var(--radius-md);
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .photo-placeholder {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--red-light);
+            color: var(--red-dark);
+            font-size: 14px;
+            font-weight: 600;
+            text-align: center;
+            padding: var(--space-md);
+        }
+        
+        /* Bio Info Section */
+        .bio-section {
+            padding: var(--space-xl) var(--space-md);
+            background: var(--white);
+        }
+        
+        .bio-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: var(--space-sm);
+            max-width: 400px;
+            margin: 0 auto;
+        }
+        
+        .bio-card {
+            background: var(--gray-light);
+            padding: var(--space-md);
+            border-radius: var(--radius-md);
+            text-align: center;
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+        
+        .bio-card:active {
+            border-color: var(--red-primary);
+            transform: scale(0.98);
+        }
+        
+        .bio-label {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--gray-dark);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+        
+        .bio-value {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--black);
+        }
+        
+        /* Quote Section */
+        .quote-section {
+            padding: var(--space-xl) var(--space-md);
+            background: var(--red-primary);
+            text-align: center;
+        }
+        
+        .quote-text {
+            font-size: 24px;
+            font-weight: 800;
+            color: var(--white);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        /* Content Sections */
+        .content-wrapper {
+            padding: var(--space-lg) var(--space-md);
+        }
+        
+        .section {
+            margin-bottom: var(--space-xl);
+            background: var(--white);
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            box-shadow: var(--shadow-md);
+        }
+        
+        .section-header {
+            background: var(--black);
+            color: var(--white);
+            padding: var(--space-md) var(--space-lg);
+            font-size: 18px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .section-content {
+            padding: var(--space-lg);
+        }
+        
+        /* Family Section Special */
+        .family-section .section-header {
+            background: var(--gold);
+            color: var(--black);
+        }
+        
+        .family-section .section-content {
+            background: var(--gold-light);
+        }
+        
+        .family-list {
+            list-style: none;
+        }
+        
+        .family-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: var(--space-sm) 0;
+            border-bottom: 1px dashed rgba(0,0,0,0.1);
+        }
+        
+        .family-item:last-child {
+            border-bottom: none;
+        }
+        
+        .family-name {
+            font-weight: 600;
+            font-size: 15px;
+            color: var(--black);
+        }
+        
+        .family-relation {
+            font-size: 13px;
+            color: var(--gray-dark);
+            font-style: italic;
+        }
+        
+        /* Timeline Section */
+        .timeline {
+            position: relative;
+            padding-left: var(--space-xl);
+        }
+        
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 10px;
+            top: 0;
+            bottom: 0;
+            width: 3px;
+            background: var(--red-primary);
+        }
+        
+        .timeline-item {
+            position: relative;
+            margin-bottom: var(--space-xl);
+        }
+        
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -22px;
+            top: 5px;
+            width: 16px;
+            height: 16px;
+            background: var(--white);
+            border: 3px solid var(--red-primary);
+            border-radius: 50%;
+        }
+        
+        .timeline-date {
+            display: inline-block;
+            background: var(--red-primary);
+            color: var(--white);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+            margin-bottom: var(--space-xs);
+        }
+        
+        .timeline-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--black);
+            margin-bottom: 4px;
+        }
+        
+        .timeline-desc {
+            font-size: 14px;
+            color: var(--gray-dark);
+            line-height: 1.5;
+        }
+        
+        /* Achievement Section */
+        .achievement-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: var(--space-md);
+        }
+        
+        .achievement-card {
+            background: var(--gray-light);
+            padding: var(--space-lg) var(--space-md);
+            border-radius: var(--radius-md);
+            text-align: center;
+            border-left: 4px solid var(--red-primary);
+        }
+        
+        .achievement-number {
+            font-size: 28px;
+            font-weight: 900;
+            color: var(--red-primary);
+            line-height: 1;
+            margin-bottom: 4px;
+        }
+        
+        .achievement-label {
+            font-size: 12px;
+            color: var(--gray-dark);
+            font-weight: 500;
+        }
+        
+        /* Awards Section */
+        .awards-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: var(--space-md);
+        }
+        
+        .award-item {
+            display: flex;
+            align-items: center;
+            background: var(--gold-light);
+            padding: var(--space-md);
+            border-radius: var(--radius-md);
+            border-left: 4px solid var(--gold);
+        }
+        
+        .award-icon {
+            font-size: 24px;
+            margin-right: var(--space-md);
+        }
+        
+        .award-content h4 {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--black);
+            margin-bottom: 2px;
+        }
+        
+        .award-content p {
+            font-size: 12px;
+            color: var(--gray-dark);
+        }
+        
+        /* Leadership Style Section */
+        .leadership-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: var(--space-md);
+        }
+        
+        .leadership-card {
+            background: var(--gray-light);
+            padding: var(--space-lg);
+            border-radius: var(--radius-md);
+            border-top: 4px solid var(--red-primary);
+        }
+        
+        .leadership-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--red-primary);
+            color: var(--white);
+            border-radius: var(--radius-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: var(--space-md);
+            font-size: 20px;
+        }
+        
+        .leadership-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--black);
+            margin-bottom: var(--space-xs);
+        }
+        
+        .leadership-desc {
+            font-size: 14px;
+            color: var(--gray-dark);
+            line-height: 1.5;
+        }
+        
+        /* Footer */
+        .footer {
+            background: var(--black);
+            color: var(--white);
+            padding: var(--space-xl) var(--space-md);
+            text-align: center;
+        }
+        
+        .footer-text {
+            font-size: 14px;
+            margin-bottom: var(--space-xs);
+        }
+        
+        .footer-source {
+            font-size: 12px;
+            opacity: 0.7;
+        }
+        
+        /* Tablet Styles (768px and up) */
+        @media (min-width: 768px) {
+            .container {
+                max-width: 768px;
+                margin: 0 auto;
+                box-shadow: var(--shadow-lg);
+            }
+            
+            .header {
+                padding: var(--space-2xl) var(--space-xl);
+            }
+            
+            .main-title {
+                font-size: 48px;
+            }
+            
+            .subtitle {
+                font-size: 16px;
+                max-width: 400px;
+            }
+            
+            .photo-frame {
+                width: 250px;
+                height: 300px;
+            }
+            
+            .bio-grid {
+                grid-template-columns: repeat(4, 1fr);
+                max-width: 600px;
+            }
+            
+            .achievement-grid {
+                grid-template-columns: repeat(4, 1fr);
+            }
+            
+            .awards-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .leadership-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+            
+            .content-wrapper {
+                padding: var(--space-2xl);
+            }
+            
+            .timeline {
+                padding-left: var(--space-2xl);
+            }
+        }
+        
+        /* Desktop Styles (1024px and up) */
+        @media (min-width: 1024px) {
+            .container {
+                max-width: 1024px;
+            }
+            
+            .main-title {
+                font-size: 56px;
+            }
+            
+            .subtitle {
+                font-size: 18px;
+                max-width: 500px;
+            }
+        }
+        
+        /* Print Styles */
+        @media print {
+            body {
+                background: white;
+            }
+            
+            .container {
+                box-shadow: none;
+            }
+            
+            .section {
+                break-inside: avoid;
+                page-break-inside: avoid;
+                box-shadow: none;
+                border: 1px solid #ddd;
+            }
+            
+            .photo-section {
+                background: white;
+            }
+            
+            .quote-section {
+                background: white;
+                color: var(--black);
+                border: 2px solid var(--red-primary);
+            }
+            
+            .quote-text {
+                color: var(--red-primary);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <div class="logo">Infografis Indonesia</div>
+                <h1 class="main-title">JOKO WIDODO</h1>
+                <p class="subtitle">Presiden ke-7 Republik Indonesia yang memimpin transformasi infrastruktur dan digitalisasi bangsa</p>
+            </div>
+        </header>
+        
+        <!-- Photo Section -->
+        <section class="photo-section">
+            <div class="photo-wrapper">
+                <div class="photo-frame">
+                    <div class="photo-placeholder">
+                        Masukkan Foto<br>Joko Widodo<br>Di Sini
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Bio Info -->
+        <section class="bio-section">
+            <div class="bio-grid">
+                <div class="bio-card">
+                    <div class="bio-label">Lahir</div>
+                    <div class="bio-value">21 Juni 1961</div>
+                </div>
+                <div class="bio-card">
+                    <div class="bio-label">Kota</div>
+                    <div class="bio-value">Surakarta</div>
+                </div>
+                <div class="bio-card">
+                    <div class="bio-label">Pendidikan</div>
+                    <div class="bio-value">S1 UGM</div>
+                </div>
+                <div class="bio-card">
+                    <div class="bio-label">Agama</div>
+                    <div class="bio-value">Islam</div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Quote -->
+        <section class="quote-section">
+            <h2 class="quote-text">"Kerja, Kerja, Kerja!"</h2>
+        </section>
+        
+        <!-- Content Wrapper -->
+        <div class="content-wrapper">
+            <!-- Family Section -->
+            <section class="section family-section">
+                <h3 class="section-header">Keluarga</h3>
+                <div class="section-content">
+                    <ul class="family-list">
+                        <li class="family-item">
+                            <span class="family-name">Iriana</span>
+                            <span class="family-relation">Istri</span>
+                        </li>
+                        <li class="family-item">
+                            <span class="family-name">Gibran Rakabuming</span>
+                            <span class="family-relation">Anak</span>
+                        </li>
+                        <li class="family-item">
+                            <span class="family-name">Kahiyang Ayu</span>
+                            <span class="family-relation">Anak</span>
+                        </li>
+                        <li class="family-item">
+                            <span class="family-name">Kaesang Pangarep</span>
+                            <span class="family-relation">Anak</span>
+                        </li>
+                        <li class="family-item">
+                            <span class="family-name">Selvi Ananda</span>
+                            <span class="family-relation">Menantu</span>
+                        </li>
+                        <li class="family-item">
+                            <span class="family-name">Bobby Nasution</span>
+                            <span class="family-relation">Menantu</span>
+                        </li>
+                        <li class="family-item">
+                            <span class="family-name">Jan Ethes</span>
+                            <span class="family-relation">Cucu</span>
+                        </li>
+                        <li class="family-item">
+                            <span class="family-name">Sedah Mirah</span>
+                            <span class="family-relation">Cucu</span>
+                        </li>
+                    </ul>
+                </div>
+            </section>
+            
+            <!-- Timeline Section -->
+            <section class="section">
+                <h3 class="section-header">Perjalanan Karier</h3>
+                <div class="section-content">
+                    <div class="timeline">
+                        <div class="timeline-item">
+                            <span class="timeline-date">1985-2005</span>
+                            <h4 class="timeline-title">Pengusaha Mebel</h4>
+                            <p class="timeline-desc">Mendirikan CV Rakabu, ekspor furnitur ke Eropa</p>
+                        </div>
+                        <div class="timeline-item">
+                            <span class="timeline-date">2005-2012</span>
+                            <h4 class="timeline-title">Wali Kota Surakarta</h4>
+                            <p class="timeline-desc">Revitalisasi kota, metode "blusukan"</p>
+                        </div>
+                        <div class="timeline-item">
+                            <span class="timeline-date">2012-2014</span>
+                            <h4 class="timeline-title">Gubernur DKI Jakarta</h4>
+                            <p class="timeline-desc">KJS, KJP, pembangunan MRT</p>
+                        </div>
+                        <div class="timeline-item">
+                            <span class="timeline-date">2014-2024</span>
+                            <h4 class="timeline-title">Presiden RI</h4>
+                            <p class="timeline-desc">Infrastruktur masif, IKN Nusantara</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Achievement Section -->
+            <section class="section">
+                <h3 class="section-header">Pencapaian Utama</h3>
+                <div class="section-content">
+                    <div class="achievement-grid">
+                        <div class="achievement-card">
+                            <div class="achievement-number">2.040</div>
+                            <div class="achievement-label">KM Jalan Tol</div>
+                        </div>
+                        <div class="achievement-card">
+                            <div class="achievement-number">35</div>
+                            <div class="achievement-label">Bendungan</div>
+                        </div>
+                        <div class="achievement-card">
+                            <div class="achievement-number">92,3</div>
+                            <div class="achievement-label">Juta KIS</div>
+                        </div>
+                        <div class="achievement-card">
+                            <div class="achievement-number">IKN</div>
+                            <div class="achievement-label">Nusantara</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Awards Section -->
+            <section class="section">
+                <h3 class="section-header">Penghargaan</h3>
+                <div class="section-content">
+                    <div class="awards-grid">
+                        <div class="award-item">
+                            <div class="award-icon">🏆</div>
+                            <div class="award-content">
+                                <h4>World Mayor Prize</h4>
+                                <p>Peringkat 3 Dunia (2012)</p>
+                            </div>
+                        </div>
+                        <div class="award-item">
+                            <div class="award-icon">⭐</div>
+                            <div class="award-content">
+                                <h4>The Grand Cross</h4>
+                                <p>Jerman</p>
+                            </div>
+                        </div>
+                        <div class="award-item">
+                            <div class="award-icon">🎖️</div>
+                            <div class="award-content">
+                                <h4>Order of Sikatuna</h4>
+                                <p>Filipina</p>
+                            </div>
+                        </div>
+                        <div class="award-item">
+                            <div class="award-icon">🌟</div>
+                            <div class="award-content">
+                                <h4>Bintang Mahaputera</h4>
+                                <p>Indonesia</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Leadership Style Section -->
+            <section class="section">
+                <h3 class="section-header">Gaya Kepemimpinan</h3>
+                <div class="section-content">
+                    <div class="leadership-grid">
+                        <div class="leadership-card">
+                            <div class="leadership-icon">👥</div>
+                            <h4 class="leadership-title">Blusukan</h4>
+                            <p class="leadership-desc">Kunjungan mendadak untuk mendengar aspirasi rakyat</p>
+                        </div>
+                        <div class="leadership-card">
+                            <div class="leadership-icon">💬</div>
+                            <h4 class="leadership-title">Merakyat</h4>
+                            <p class="leadership-desc">Bahasa sederhana dan gesture ramah</p>
+                        </div>
+                        <div class="leadership-card">
+                            <div class="leadership-icon">⚡</div>
+                            <h4 class="leadership-title">Kerja Cepat</h4>
+                            <p class="leadership-desc">Etos kerja tinggi dan hasil konkret</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+        
+        <!-- Footer -->
+        <footer class="footer">
+            <p class="footer-text">Infografis Biografi Presiden ke-7 Republik Indonesia</p>
+            <p class="footer-source">Sumber: Data resmi pemerintah dan media terpercaya</p>
+        </footer>
+    </div>
+</body>
+</html>
