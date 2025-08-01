@@ -1,0 +1,3345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#000000">
+    <title>Neon Racing Pro - AAA WebGL Racing</title>
+    
+    <!-- Three.js untuk WebGL -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+            overflow: hidden;
+            background: #000;
+            color: #fff;
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            touch-action: none;
+            overscroll-behavior: none;
+        }
+
+        #gameCanvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        /* Loading Screen dengan animasi yang lebih smooth */
+        .loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(ellipse at center, #001133 0%, #000000 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            z-index: 1000;
+        }
+
+        .loading-logo {
+            width: 200px;
+            height: 200px;
+            position: relative;
+            margin-bottom: 40px;
+        }
+
+        .loading-ring {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border: 3px solid transparent;
+            border-top-color: #0ff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        .loading-ring:nth-child(2) {
+            width: 80%;
+            height: 80%;
+            top: 10%;
+            left: 10%;
+            border-top-color: #f0f;
+            animation-duration: 1.5s;
+            animation-direction: reverse;
+        }
+
+        .loading-ring:nth-child(3) {
+            width: 60%;
+            height: 60%;
+            top: 20%;
+            left: 20%;
+            border-top-color: #ff0;
+            animation-duration: 2s;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loading-title {
+            font-size: clamp(32px, 8vw, 64px);
+            font-weight: 900;
+            background: linear-gradient(45deg, #0ff, #f0f, #ff0);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            animation: glow 2s ease-in-out infinite;
+        }
+
+        @keyframes glow {
+            0%, 100% { filter: brightness(1) drop-shadow(0 0 20px rgba(0, 255, 255, 0.5)); }
+            50% { filter: brightness(1.2) drop-shadow(0 0 40px rgba(255, 0, 255, 0.8)); }
+        }
+
+        .loading-bar {
+            width: 80%;
+            max-width: 400px;
+            height: 6px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 3px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .loading-progress {
+            height: 100%;
+            background: linear-gradient(90deg, #0ff 0%, #f0f 50%, #ff0 100%);
+            width: 0%;
+            transition: width 0.3s ease-out;
+            box-shadow: 0 0 10px currentColor;
+        }
+
+        /* Main Menu với glassmorphism effect */
+        .main-menu {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(0,0,17,0.9) 0%, rgba(0,17,51,0.9) 100%);
+            backdrop-filter: blur(10px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            z-index: 999;
+            padding: 20px;
+        }
+
+        .menu-container {
+            background: rgba(255,255,255,0.05);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 40px;
+            border: 1px solid rgba(255,255,255,0.1);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+        }
+
+        .menu-logo {
+            font-size: clamp(36px, 8vw, 72px);
+            font-weight: 900;
+            background: linear-gradient(45deg, #0ff, #f0f, #ff0);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 40px;
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        .menu-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            width: 100%;
+            max-width: 300px;
+        }
+
+        .menu-btn {
+            font-size: 16px;
+            font-weight: 600;
+            padding: 18px 40px;
+            background: linear-gradient(135deg, rgba(0,255,255,0.1) 0%, rgba(255,0,255,0.1) 100%);
+            border: 2px solid transparent;
+            border-image: linear-gradient(45deg, #0ff, #f0f) 1;
+            border-radius: 50px;
+            color: #fff;
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .menu-btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: radial-gradient(circle, rgba(255,255,255,0.3) 0%, transparent 70%);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        .menu-btn:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        .menu-btn:active {
+            transform: scale(0.98);
+        }
+
+        /* HUD dengan design futuristik */
+        .hud {
+            position: fixed;
+            pointer-events: none;
+            z-index: 100;
+        }
+
+        /* Speedometer dengan design circular */
+        .speedometer {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: clamp(120px, 30vw, 160px);
+            height: clamp(120px, 30vw, 160px);
+        }
+
+        .speedometer-svg {
+            width: 100%;
+            height: 100%;
+            transform: rotate(-90deg);
+        }
+
+        .speed-circle-bg {
+            fill: none;
+            stroke: rgba(255,255,255,0.1);
+            stroke-width: 8;
+        }
+
+        .speed-circle {
+            fill: none;
+            stroke: url(#speedGradient);
+            stroke-width: 8;
+            stroke-linecap: round;
+            stroke-dasharray: 440;
+            stroke-dashoffset: 440;
+            transition: stroke-dashoffset 0.3s ease;
+        }
+
+        .speed-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+        }
+
+        .speed-value {
+            font-size: clamp(36px, 10vw, 54px);
+            font-weight: 300;
+            color: #0ff;
+            text-shadow: 0 0 20px #0ff;
+            display: block;
+        }
+
+        .speed-unit {
+            font-size: 12px;
+            color: rgba(0,255,255,0.8);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        /* RPM Gauge */
+        .rpm-gauge {
+            position: fixed;
+            bottom: 20px;
+            right: clamp(160px, 35vw, 200px);
+            width: 100px;
+            height: 50px;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.8), rgba(0,0,0,0.6));
+            border: 1px solid rgba(0,255,255,0.3);
+            border-radius: 50px 50px 0 0;
+            overflow: hidden;
+        }
+
+        .rpm-bars {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-around;
+            height: 100%;
+            padding: 5px;
+        }
+
+        .rpm-bar {
+            width: 3px;
+            background: #0ff;
+            transition: height 0.1s ease;
+            box-shadow: 0 0 5px #0ff;
+        }
+
+        /* Gear Display dengan animasi */
+        .gear-display {
+            position: fixed;
+            bottom: 80px;
+            right: clamp(60px, 15vw, 90px);
+            width: 80px;
+            height: 80px;
+            background: radial-gradient(circle, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.7) 100%);
+            border: 2px solid #ff0;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 36px;
+            font-weight: 300;
+            color: #ff0;
+            text-shadow: 0 0 20px #ff0;
+            box-shadow: 0 0 30px rgba(255,255,0,0.5);
+            transition: all 0.2s ease;
+        }
+
+        .gear-display.shifting {
+            animation: gearShift 0.3s ease;
+        }
+
+        @keyframes gearShift {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+
+        /* Minimap */
+        .minimap {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            width: 180px;
+            height: 120px;
+            background: rgba(0,0,0,0.8);
+            border: 2px solid rgba(0,255,255,0.5);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .minimap-canvas {
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Position Display */
+        .position-display {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            background: linear-gradient(135deg, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.6) 100%);
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 10px;
+            padding: 15px 25px;
+            min-width: 120px;
+        }
+
+        .position-label {
+            font-size: 12px;
+            color: rgba(255,255,255,0.6);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        .position-value {
+            font-size: 36px;
+            font-weight: 900;
+            background: linear-gradient(45deg, #fff, #0ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* Lap Timer */
+        .lap-timer {
+            position: fixed;
+            top: 100px;
+            left: 10px;
+            background: rgba(0,0,0,0.8);
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid rgba(0,255,255,0.3);
+            min-width: 150px;
+        }
+
+        .timer-label {
+            font-size: 12px;
+            color: rgba(255,255,255,0.6);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 5px;
+        }
+
+        .race-time {
+            font-size: 24px;
+            font-family: 'Courier New', monospace;
+            color: #0f0;
+            text-shadow: 0 0 10px #0f0;
+        }
+
+        .lap-info {
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            font-size: 14px;
+            color: #0ff;
+        }
+
+        /* Mobile Controls dengan haptic feedback */
+        .mobile-controls {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            height: 220px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            padding: 20px;
+            pointer-events: none;
+            z-index: 200;
+        }
+
+        .control-stick-area {
+            width: 150px;
+            height: 150px;
+            position: relative;
+            pointer-events: auto;
+        }
+
+        .control-stick-base {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle, rgba(0,255,255,0.1) 0%, rgba(0,255,255,0.3) 100%);
+            border: 2px solid rgba(0,255,255,0.5);
+            border-radius: 50%;
+            box-shadow: 0 0 30px rgba(0,255,255,0.3);
+        }
+
+        .control-stick {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            background: radial-gradient(circle, #0ff 0%, #00a 100%);
+            border-radius: 50%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            box-shadow: 0 0 20px #0ff;
+            transition: none;
+        }
+
+        .control-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            pointer-events: auto;
+        }
+
+        .control-btn {
+            width: 80px;
+            height: 80px;
+            background: radial-gradient(circle, rgba(0,255,255,0.2) 0%, rgba(0,255,255,0.4) 100%);
+            border: 2px solid #0ff;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            color: #0ff;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 0 30px rgba(0,255,255,0.3);
+        }
+
+        .control-btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle, rgba(255,255,255,0.3) 0%, transparent 70%);
+            transform: translate(-50%, -50%) scale(0);
+            transition: transform 0.3s ease;
+        }
+
+        .control-btn:active::before {
+            transform: translate(-50%, -50%) scale(1.5);
+        }
+
+        .brake-btn {
+            background: radial-gradient(circle, rgba(255,0,0,0.2) 0%, rgba(255,0,0,0.4) 100%);
+            border-color: #f00;
+            color: #f00;
+            box-shadow: 0 0 30px rgba(255,0,0,0.3);
+        }
+
+        .nitro-btn {
+            background: radial-gradient(circle, rgba(255,0,255,0.2) 0%, rgba(255,0,255,0.4) 100%);
+            border-color: #f0f;
+            color: #f0f;
+            box-shadow: 0 0 30px rgba(255,0,255,0.3);
+        }
+
+        /* Nitro Bar */
+        .nitro-container {
+            position: fixed;
+            bottom: 240px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 250px;
+        }
+
+        .nitro-label {
+            text-align: center;
+            font-size: 12px;
+            color: #f0f;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 5px;
+        }
+
+        .nitro-bar {
+            width: 100%;
+            height: 25px;
+            background: rgba(0,0,0,0.8);
+            border: 2px solid #f0f;
+            border-radius: 15px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .nitro-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #f0f 0%, #0ff 50%, #ff0 100%);
+            width: 100%;
+            transition: width 0.3s ease;
+            box-shadow: 0 0 20px currentColor;
+        }
+
+        .nitro-particles {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            overflow: hidden;
+        }
+
+        /* Damage Indicator */
+        .damage-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            opacity: 0;
+            background: radial-gradient(ellipse at center, transparent 30%, rgba(255,0,0,0.3) 100%);
+            transition: opacity 0.3s ease;
+        }
+
+        .damage-overlay.active {
+            opacity: 1;
+            animation: damage-pulse 0.5s ease;
+        }
+
+        @keyframes damage-pulse {
+            0%, 100% { opacity: 0; }
+            50% { opacity: 1; }
+        }
+
+        /* Effects */
+        .speed-lines {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            opacity: 0;
+            background: radial-gradient(ellipse at center, transparent 50%, rgba(0,255,255,0.1) 100%);
+        }
+
+        /* Countdown */
+        .countdown {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: clamp(100px, 25vw, 150px);
+            font-weight: 900;
+            color: #fff;
+            text-shadow: 0 0 50px currentColor;
+            display: none;
+            z-index: 300;
+            animation: countPulse 1s ease-out;
+        }
+
+        @keyframes countPulse {
+            0% { 
+                transform: translate(-50%, -50%) scale(0.5); 
+                opacity: 0; 
+                filter: blur(10px);
+            }
+            50% { 
+                transform: translate(-50%, -50%) scale(1.2); 
+                filter: blur(0);
+            }
+            100% { 
+                transform: translate(-50%, -50%) scale(1); 
+                opacity: 1; 
+                filter: blur(0);
+            }
+        }
+
+        /* Performance Stats */
+        .performance-stats {
+            position: fixed;
+            bottom: 10px;
+            left: 10px;
+            font-size: 11px;
+            color: #0f0;
+            font-family: 'Courier New', monospace;
+            background: rgba(0,0,0,0.8);
+            padding: 5px 10px;
+            border-radius: 5px;
+            pointer-events: none;
+            line-height: 1.4;
+        }
+
+        /* Responsive adjustments */
+        @media (max-height: 600px) {
+            .mobile-controls {
+                height: 180px;
+            }
+            
+            .control-stick-area {
+                width: 120px;
+                height: 120px;
+            }
+            
+            .control-btn {
+                width: 70px;
+                height: 70px;
+                font-size: 28px;
+            }
+            
+            .speedometer {
+                width: 100px;
+                height: 100px;
+            }
+        }
+
+        /* Pause Menu */
+        .pause-menu {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 500;
+        }
+
+        .pause-content {
+            background: rgba(255,255,255,0.05);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 40px;
+            border: 1px solid rgba(255,255,255,0.1);
+            text-align: center;
+        }
+
+        .pause-title {
+            font-size: 36px;
+            font-weight: 900;
+            color: #0ff;
+            margin-bottom: 30px;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        /* Disable scrolling and pull-to-refresh */
+        body {
+            overscroll-behavior-y: none;
+            position: fixed;
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="gameCanvas"></canvas>
+
+    <!-- Loading Screen -->
+    <div class="loading-screen" id="loadingScreen">
+        <div class="loading-logo">
+            <div class="loading-ring"></div>
+            <div class="loading-ring"></div>
+            <div class="loading-ring"></div>
+        </div>
+        <div class="loading-title">NEON RACING PRO</div>
+        <div class="loading-bar">
+            <div class="loading-progress" id="loadingProgress"></div>
+        </div>
+    </div>
+
+    <!-- Main Menu -->
+    <div class="main-menu" id="mainMenu">
+        <div class="menu-container">
+            <div class="menu-logo">NEON RACING PRO</div>
+            <div class="menu-buttons">
+                <div class="menu-btn" id="quickRaceBtn">QUICK RACE</div>
+                <div class="menu-btn" id="careerBtn">CAREER MODE</div>
+                <div class="menu-btn" id="garageBtn">GARAGE</div>
+                <div class="menu-btn" id="settingsBtn">SETTINGS</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Game HUD -->
+    <div class="hud" id="gameHUD" style="display: none;">
+        <!-- Speedometer -->
+        <div class="speedometer">
+            <svg class="speedometer-svg">
+                <defs>
+                    <linearGradient id="speedGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                        <stop offset="0%" style="stop-color:#0ff;stop-opacity:1" />
+                        <stop offset="100%" style="stop-color:#f0f;stop-opacity:1" />
+                    </linearGradient>
+                </defs>
+                <circle class="speed-circle-bg" cx="80" cy="80" r="70" />
+                <circle class="speed-circle" cx="80" cy="80" r="70" id="speedCircle" />
+            </svg>
+            <div class="speed-text">
+                <span class="speed-value" id="speedValue">0</span>
+                <span class="speed-unit">km/h</span>
+            </div>
+        </div>
+
+        <!-- RPM Gauge -->
+        <div class="rpm-gauge">
+            <div class="rpm-bars" id="rpmBars"></div>
+        </div>
+        
+        <!-- Gear Display -->
+        <div class="gear-display" id="gearDisplay">N</div>
+        
+        <!-- Position Display -->
+        <div class="position-display">
+            <div class="position-label">Position</div>
+            <div class="position-value" id="position">1st</div>
+        </div>
+        
+        <!-- Lap Timer -->
+        <div class="lap-timer">
+            <div class="timer-label">Race Time</div>
+            <div class="race-time" id="raceTime">00:00.00</div>
+            <div class="lap-info">Lap <span id="currentLap">1</span> of 3</div>
+        </div>
+
+        <!-- Minimap -->
+        <div class="minimap">
+            <canvas class="minimap-canvas" id="minimapCanvas"></canvas>
+        </div>
+    </div>
+
+    <!-- Mobile Controls -->
+    <div class="mobile-controls" id="mobileControls" style="display: none;">
+        <div class="control-stick-area" id="steeringStick">
+            <div class="control-stick-base"></div>
+            <div class="control-stick" id="stickKnob"></div>
+        </div>
+        
+        <div class="control-buttons">
+            <div class="control-btn nitro-btn" id="nitroBtn">⚡</div>
+            <div class="control-btn" id="gasBtn">▲</div>
+            <div class="control-btn brake-btn" id="brakeBtn">▼</div>
+        </div>
+    </div>
+
+    <!-- Nitro Bar -->
+    <div class="nitro-container" id="nitroContainer" style="display: none;">
+        <div class="nitro-label">NITRO</div>
+        <div class="nitro-bar">
+            <div class="nitro-fill" id="nitroFill"></div>
+            <div class="nitro-particles"></div>
+        </div>
+    </div>
+
+    <!-- Effects -->
+    <div class="damage-overlay" id="damageOverlay"></div>
+    <div class="speed-lines" id="speedLines"></div>
+
+    <!-- Countdown -->
+    <div class="countdown" id="countdown"></div>
+
+    <!-- Performance Stats -->
+    <div class="performance-stats" id="performanceStats">
+        <div>FPS: <span id="fps">0</span></div>
+        <div>Draw Calls: <span id="drawCalls">0</span></div>
+    </div>
+
+    <!-- Pause Menu -->
+    <div class="pause-menu" id="pauseMenu">
+        <div class="pause-content">
+            <div class="pause-title">PAUSED</div>
+            <div class="menu-buttons">
+                <div class="menu-btn" id="resumeBtn">RESUME</div>
+                <div class="menu-btn" id="restartBtn">RESTART</div>
+                <div class="menu-btn" id="quitBtn">QUIT</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        'use strict';
+
+        // Enhanced Game Configuration for AAA Quality
+        const CONFIG = {
+            graphics: {
+                quality: 'auto',
+                shadows: true,
+                reflections: true,
+                particles: true,
+                postProcessing: true,
+                antialiasing: true,
+                bloomEffect: true,
+                motionBlur: true,
+                maxFPS: 60,
+                mobileFPS: 30
+            },
+            physics: {
+                gravity: -9.82,
+                friction: 0.85,
+                airResistance: 0.98,
+                tireGrip: 0.9,
+                downforce: 0.5,
+                suspensionStiffness: 80,
+                suspensionDamping: 15
+            },
+            vehicle: {
+                maxSpeed: 350,
+                acceleration: 450,
+                braking: 600,
+                steering: 3.0,
+                nitroBoost: 1.8,
+                nitroMax: 100,
+                nitroRecharge: 8,
+                driftThreshold: 20,
+                engineCurve: [0.3, 0.5, 0.8, 1.0, 0.9, 0.7],
+                gearRatios: [3.5, 2.5, 1.8, 1.3, 1.0, 0.8],
+                mass: 1200,
+                dragCoefficient: 0.3
+            },
+            ai: {
+                reactionTime: 0.2,
+                lookAheadDistance: 100,
+                avoidanceRadius: 30,
+                racingLineDeviation: 5,
+                aggressiveness: 0.7,
+                skillLevels: {
+                    easy: { speed: 0.7, accuracy: 0.6 },
+                    medium: { speed: 0.85, accuracy: 0.8 },
+                    hard: { speed: 0.95, accuracy: 0.95 },
+                    expert: { speed: 1.0, accuracy: 0.99 }
+                }
+            },
+            audio: {
+                enabled: true,
+                engineVolume: 0.7,
+                sfxVolume: 0.8,
+                musicVolume: 0.5,
+                doppler: true,
+                reverb: true
+            },
+            controls: {
+                steeringDeadZone: 0.1,
+                steeringSensitivity: 2.5,
+                hapticFeedback: true,
+                vibrationIntensity: 1.0,
+                adaptiveTriggers: true
+            }
+        };
+
+        // WebGL Renderer Class
+        class WebGLRenderer {
+            constructor(canvas) {
+                this.canvas = canvas;
+                this.scene = new THREE.Scene();
+                this.camera = new THREE.PerspectiveCamera(
+                    75,
+                    window.innerWidth / window.innerHeight,
+                    0.1,
+                    2000
+                );
+                
+                // Setup renderer with high quality settings
+                this.renderer = new THREE.WebGLRenderer({
+                    canvas: canvas,
+                    antialias: CONFIG.graphics.antialiasing,
+                    powerPreference: "high-performance"
+                });
+                
+                this.renderer.setSize(window.innerWidth, window.innerHeight);
+                this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+                this.renderer.shadowMap.enabled = CONFIG.graphics.shadows;
+                this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+                this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
+                this.renderer.toneMappingExposure = 1.0;
+                
+                // Add fog for depth
+                this.scene.fog = new THREE.Fog(0x000033, 100, 1000);
+                
+                // Setup lights
+                this.setupLights();
+                
+                // Setup post-processing
+                this.setupPostProcessing();
+                
+                // Vehicle models
+                this.vehicleModels = new Map();
+                
+                // Track mesh
+                this.trackMesh = null;
+                
+                // Particle systems
+                this.particleSystems = [];
+                
+                // Environment
+                this.setupEnvironment();
+            }
+            
+            setupLights() {
+                // Ambient light
+                const ambientLight = new THREE.AmbientLight(0x404040, 0.5);
+                this.scene.add(ambientLight);
+                
+                // Directional light (sun)
+                const dirLight = new THREE.DirectionalLight(0xffffff, 1);
+                dirLight.position.set(100, 200, 50);
+                dirLight.castShadow = true;
+                dirLight.shadow.camera.left = -200;
+                dirLight.shadow.camera.right = 200;
+                dirLight.shadow.camera.top = 200;
+                dirLight.shadow.camera.bottom = -200;
+                dirLight.shadow.camera.near = 0.1;
+                dirLight.shadow.camera.far = 500;
+                dirLight.shadow.mapSize.width = 2048;
+                dirLight.shadow.mapSize.height = 2048;
+                this.scene.add(dirLight);
+                
+                // Hemisphere light for better ambient
+                const hemiLight = new THREE.HemisphereLight(0x0066ff, 0x000033, 0.6);
+                this.scene.add(hemiLight);
+                
+                // Track lights (neon style)
+                this.trackLights = [];
+            }
+            
+            setupPostProcessing() {
+                // Would implement post-processing effects here
+                // Bloom, motion blur, SSAO, etc.
+            }
+            
+            setupEnvironment() {
+                // Skybox
+                const skyGeometry = new THREE.SphereGeometry(1000, 32, 32);
+                const skyMaterial = new THREE.ShaderMaterial({
+                    uniforms: {
+                        topColor: { value: new THREE.Color(0x000033) },
+                        bottomColor: { value: new THREE.Color(0x000000) },
+                        offset: { value: 33 },
+                        exponent: { value: 0.6 }
+                    },
+                    vertexShader: `
+                        varying vec3 vWorldPosition;
+                        void main() {
+                            vec4 worldPosition = modelMatrix * vec4(position, 1.0);
+                            vWorldPosition = worldPosition.xyz;
+                            gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+                        }
+                    `,
+                    fragmentShader: `
+                        uniform vec3 topColor;
+                        uniform vec3 bottomColor;
+                        uniform float offset;
+                        uniform float exponent;
+                        varying vec3 vWorldPosition;
+                        void main() {
+                            float h = normalize(vWorldPosition + offset).y;
+                            gl_FragColor = vec4(mix(bottomColor, topColor, max(pow(max(h, 0.0), exponent), 0.0)), 1.0);
+                        }
+                    `,
+                    side: THREE.BackSide
+                });
+                
+                const sky = new THREE.Mesh(skyGeometry, skyMaterial);
+                this.scene.add(sky);
+                
+                // Ground plane with grid
+                const gridHelper = new THREE.GridHelper(2000, 100, 0x0066ff, 0x003366);
+                this.scene.add(gridHelper);
+            }
+            
+            createVehicleModel(color) {
+                const group = new THREE.Group();
+                
+                // Car body
+                const bodyGeometry = new THREE.BoxGeometry(4, 2, 8);
+                const bodyMaterial = new THREE.MeshPhysicalMaterial({
+                    color: color,
+                    metalness: 0.7,
+                    roughness: 0.2,
+                    clearcoat: 1.0,
+                    clearcoatRoughness: 0.03,
+                    reflectivity: 0.9
+                });
+                const bodyMesh = new THREE.Mesh(bodyGeometry, bodyMaterial);
+                bodyMesh.position.y = 1;
+                bodyMesh.castShadow = true;
+                bodyMesh.receiveShadow = true;
+                group.add(bodyMesh);
+                
+                // Wheels
+                const wheelGeometry = new THREE.CylinderGeometry(0.8, 0.8, 0.5, 16);
+                const wheelMaterial = new THREE.MeshStandardMaterial({
+                    color: 0x333333,
+                    metalness: 0.8,
+                    roughness: 0.3
+                });
+                
+                const wheelPositions = [
+                    [-1.5, 0.5, 2.5],
+                    [1.5, 0.5, 2.5],
+                    [-1.5, 0.5, -2.5],
+                    [1.5, 0.5, -2.5]
+                ];
+                
+                wheelPositions.forEach(pos => {
+                    const wheel = new THREE.Mesh(wheelGeometry, wheelMaterial);
+                    wheel.position.set(...pos);
+                    wheel.rotation.z = Math.PI / 2;
+                    wheel.castShadow = true;
+                    group.add(wheel);
+                });
+                
+                // Windows
+                const windowGeometry = new THREE.BoxGeometry(3.5, 0.8, 3);
+                const windowMaterial = new THREE.MeshPhysicalMaterial({
+                    color: 0x000000,
+                    metalness: 0,
+                    roughness: 0,
+                    transmission: 0.9,
+                    thickness: 0.5
+                });
+                const windowMesh = new THREE.Mesh(windowGeometry, windowMaterial);
+                windowMesh.position.y = 2;
+                windowMesh.position.z = -0.5;
+                group.add(windowMesh);
+                
+                // Headlights
+                const headlightGeometry = new THREE.BoxGeometry(0.8, 0.4, 0.2);
+                const headlightMaterial = new THREE.MeshBasicMaterial({
+                    color: 0xffff00,
+                    emissive: 0xffff00,
+                    emissiveIntensity: 2
+                });
+                
+                [-1, 1].forEach(side => {
+                    const headlight = new THREE.Mesh(headlightGeometry, headlightMaterial);
+                    headlight.position.set(side, 1, 4);
+                    group.add(headlight);
+                    
+                    // Add point light for headlight
+                    const light = new THREE.PointLight(0xffff00, 1, 20);
+                    light.position.copy(headlight.position);
+                    group.add(light);
+                });
+                
+                return group;
+            }
+            
+            createTrackMesh(trackData) {
+                // Create track geometry
+                const shape = new THREE.Shape();
+                const outerRadius = 300;
+                const innerRadius = 260;
+                
+                // Outer edge
+                shape.moveTo(outerRadius, 0);
+                for (let i = 0; i <= 64; i++) {
+                    const angle = (i / 64) * Math.PI * 2;
+                    shape.lineTo(
+                        Math.cos(angle) * outerRadius,
+                        Math.sin(angle) * outerRadius * 0.7
+                    );
+                }
+                
+                // Inner edge (hole)
+                const hole = new THREE.Path();
+                hole.moveTo(innerRadius, 0);
+                for (let i = 0; i <= 64; i++) {
+                    const angle = (i / 64) * Math.PI * 2;
+                    hole.lineTo(
+                        Math.cos(angle) * innerRadius,
+                        Math.sin(angle) * innerRadius * 0.7
+                    );
+                }
+                shape.holes.push(hole);
+                
+                const extrudeSettings = {
+                    depth: 0.5,
+                    bevelEnabled: true,
+                    bevelThickness: 0.5,
+                    bevelSize: 1,
+                    bevelSegments: 2
+                };
+                
+                const geometry = new THREE.ExtrudeGeometry(shape, extrudeSettings);
+                const material = new THREE.MeshStandardMaterial({
+                    color: 0x222222,
+                    roughness: 0.8,
+                    metalness: 0.1
+                });
+                
+                const track = new THREE.Mesh(geometry, material);
+                track.rotation.x = -Math.PI / 2;
+                track.receiveShadow = true;
+                
+                // Add track markings
+                this.addTrackMarkings();
+                
+                // Add barriers
+                this.addTrackBarriers();
+                
+                return track;
+            }
+            
+            addTrackMarkings() {
+                // Center line
+                const centerLineGeometry = new THREE.RingGeometry(275, 285, 64);
+                const centerLineMaterial = new THREE.MeshBasicMaterial({
+                    color: 0x666666,
+                    side: THREE.DoubleSide
+                });
+                const centerLine = new THREE.Mesh(centerLineGeometry, centerLineMaterial);
+                centerLine.rotation.x = -Math.PI / 2;
+                centerLine.position.y = 0.1;
+                this.scene.add(centerLine);
+                
+                // Start/finish line
+                const startLineGeometry = new THREE.PlaneGeometry(40, 5);
+                const startLineMaterial = new THREE.MeshBasicMaterial({
+                    color: 0xffffff
+                });
+                const startLine = new THREE.Mesh(startLineGeometry, startLineMaterial);
+                startLine.rotation.x = -Math.PI / 2;
+                startLine.position.set(280, 0.1, 0);
+                this.scene.add(startLine);
+            }
+            
+            addTrackBarriers() {
+                // Neon barriers
+                const barrierCurve = new THREE.EllipseCurve(
+                    0, 0,
+                    310, 217,
+                    0, 2 * Math.PI,
+                    false,
+                    0
+                );
+                
+                const points = barrierCurve.getPoints(100);
+                const barrierGeometry = new THREE.BufferGeometry().setFromPoints(points);
+                
+                const barrierMaterial = new THREE.LineBasicMaterial({
+                    color: 0x00ffff,
+                    linewidth: 3
+                });
+                
+                const barrierLine = new THREE.Line(barrierGeometry, barrierMaterial);
+                barrierLine.rotation.x = -Math.PI / 2;
+                barrierLine.position.y = 2;
+                this.scene.add(barrierLine);
+                
+                // Inner barrier
+                const innerBarrierCurve = new THREE.EllipseCurve(
+                    0, 0,
+                    250, 175,
+                    0, 2 * Math.PI,
+                    false,
+                    0
+                );
+                
+                const innerPoints = innerBarrierCurve.getPoints(100);
+                const innerBarrierGeometry = new THREE.BufferGeometry().setFromPoints(innerPoints);
+                
+                const innerBarrierLine = new THREE.Line(innerBarrierGeometry, barrierMaterial);
+                innerBarrierLine.rotation.x = -Math.PI / 2;
+                innerBarrierLine.position.y = 2;
+                this.scene.add(innerBarrierLine);
+            }
+            
+            addVehicle(vehicle) {
+                const model = this.createVehicleModel(vehicle.color);
+                this.vehicleModels.set(vehicle.id, model);
+                this.scene.add(model);
+                return model;
+            }
+            
+            updateVehicle(vehicle, model) {
+                model.position.x = vehicle.position.x;
+                model.position.z = vehicle.position.y;
+                model.position.y = vehicle.position.z || 0;
+                model.rotation.y = -vehicle.rotation;
+                
+                // Update wheel rotation based on speed
+                const wheels = model.children.filter(child => child.geometry && child.geometry.type === 'CylinderGeometry');
+                wheels.forEach(wheel => {
+                    wheel.rotation.x += vehicle.speed * 0.05;
+                });
+            }
+            
+            updateCamera(target) {
+                // Chase camera
+                const distance = 15 + target.speed * 0.05;
+                const height = 8 + target.speed * 0.02;
+                
+                const idealPosition = new THREE.Vector3(
+                    target.position.x - Math.sin(target.rotation) * distance,
+                    height,
+                    target.position.y - Math.cos(target.rotation) * distance
+                );
+                
+                // Smooth camera movement
+                this.camera.position.lerp(idealPosition, 0.1);
+                
+                // Look at target with offset
+                const lookAtPosition = new THREE.Vector3(
+                    target.position.x + Math.sin(target.rotation) * 10,
+                    2,
+                    target.position.y + Math.cos(target.rotation) * 10
+                );
+                this.camera.lookAt(lookAtPosition);
+                
+                // Update FOV based on speed
+                const targetFOV = 75 + target.speed * 0.05;
+                this.camera.fov += (targetFOV - this.camera.fov) * 0.05;
+                this.camera.updateProjectionMatrix();
+            }
+            
+            createParticleSystem(type, position, count = 100) {
+                const particles = new THREE.BufferGeometry();
+                const positions = new Float32Array(count * 3);
+                const velocities = new Float32Array(count * 3);
+                
+                for (let i = 0; i < count * 3; i += 3) {
+                    positions[i] = position.x + (Math.random() - 0.5) * 2;
+                    positions[i + 1] = position.y + Math.random() * 2;
+                    positions[i + 2] = position.z + (Math.random() - 0.5) * 2;
+                    
+                    velocities[i] = (Math.random() - 0.5) * 0.2;
+                    velocities[i + 1] = Math.random() * 0.5;
+                    velocities[i + 2] = (Math.random() - 0.5) * 0.2;
+                }
+                
+                particles.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+                particles.setAttribute('velocity', new THREE.BufferAttribute(velocities, 3));
+                
+                let material;
+                switch (type) {
+                    case 'smoke':
+                        material = new THREE.PointsMaterial({
+                            color: 0x666666,
+                            size: 2,
+                            transparent: true,
+                            opacity: 0.6,
+                            blending: THREE.AdditiveBlending
+                        });
+                        break;
+                    case 'sparks':
+                        material = new THREE.PointsMaterial({
+                            color: 0xffaa00,
+                            size: 1,
+                            transparent: true,
+                            opacity: 1,
+                            blending: THREE.AdditiveBlending
+                        });
+                        break;
+                    case 'nitro':
+                        material = new THREE.PointsMaterial({
+                            color: 0x00ffff,
+                            size: 3,
+                            transparent: true,
+                            opacity: 0.8,
+                            blending: THREE.AdditiveBlending
+                        });
+                        break;
+                }
+                
+                const system = new THREE.Points(particles, material);
+                this.scene.add(system);
+                this.particleSystems.push({
+                    system: system,
+                    life: 1.0,
+                    type: type
+                });
+                
+                return system;
+            }
+            
+            updateParticles(deltaTime) {
+                this.particleSystems = this.particleSystems.filter(ps => {
+                    ps.life -= deltaTime;
+                    
+                    if (ps.life <= 0) {
+                        this.scene.remove(ps.system);
+                        return false;
+                    }
+                    
+                    const positions = ps.system.geometry.attributes.position.array;
+                    const velocities = ps.system.geometry.attributes.velocity.array;
+                    
+                    for (let i = 0; i < positions.length; i += 3) {
+                        positions[i] += velocities[i] * deltaTime * 10;
+                        positions[i + 1] += velocities[i + 1] * deltaTime * 10;
+                        positions[i + 2] += velocities[i + 2] * deltaTime * 10;
+                        
+                        velocities[i + 1] -= 0.1 * deltaTime; // gravity
+                    }
+                    
+                    ps.system.geometry.attributes.position.needsUpdate = true;
+                    ps.system.material.opacity = ps.life;
+                    
+                    return true;
+                });
+            }
+            
+            render() {
+                this.renderer.render(this.scene, this.camera);
+            }
+            
+            resize() {
+                this.camera.aspect = window.innerWidth / window.innerHeight;
+                this.camera.updateProjectionMatrix();
+                this.renderer.setSize(window.innerWidth, window.innerHeight);
+            }
+        }
+
+        // Enhanced Vehicle Physics Class
+        class VehiclePhysics {
+            constructor(config) {
+                this.config = config;
+                
+                // Position and orientation
+                this.position = { x: 0, y: 0, z: 0 };
+                this.rotation = 0;
+                this.velocity = { x: 0, y: 0, z: 0 };
+                this.acceleration = { x: 0, y: 0, z: 0 };
+                this.angularVelocity = 0;
+                
+                // Vehicle state
+                this.speed = 0;
+                this.engineRPM = 1000;
+                this.gear = 1;
+                this.throttle = 0;
+                this.brake = 0;
+                this.steering = 0;
+                this.handbrake = false;
+                
+                // Physics properties
+                this.mass = config.vehicle.mass;
+                this.wheelBase = 2.5;
+                this.trackWidth = 1.5;
+                this.centerOfGravity = 0.5;
+                
+                // Suspension
+                this.suspensionCompression = [0, 0, 0, 0];
+                this.wheelLoads = [1, 1, 1, 1];
+                
+                // Tires
+                this.tireSlip = [0, 0, 0, 0];
+                this.tireTemperat
+ure = [0, 0, 0, 0];
+                this.tireWear = [100, 100, 100, 100];
+                
+                // Aerodynamics
+                this.drag = 0;
+                this.downforce = 0;
+                
+                // Effects
+                this.isDrifting = false;
+                this.driftAngle = 0;
+                this.nitroActive = false;
+                this.nitroAmount = 100;
+                
+                // Damage
+                this.damage = 0;
+                this.engineDamage = 0;
+                this.suspensionDamage = [0, 0, 0, 0];
+            }
+            
+            update(deltaTime) {
+                // Update engine
+                this.updateEngine(deltaTime);
+                
+                // Calculate forces
+                const forces = this.calculateForces();
+                
+                // Apply forces
+                this.applyForces(forces, deltaTime);
+                
+                // Update position
+                this.updatePosition(deltaTime);
+                
+                // Update effects
+                this.updateEffects(deltaTime);
+                
+                // Check limits
+                this.checkLimits();
+            }
+            
+            updateEngine(deltaTime) {
+                // Calculate target RPM based on speed and gear
+                const gearRatio = this.config.vehicle.gearRatios[this.gear - 1] || 1;
+                const targetRPM = Math.abs(this.speed) * gearRatio * 60 + 1000;
+                
+                // Update RPM with engine inertia
+                const rpmDiff = targetRPM - this.engineRPM;
+                this.engineRPM += rpmDiff * deltaTime * 5;
+                
+                // Clamp RPM
+                this.engineRPM = Math.max(1000, Math.min(8000, this.engineRPM));
+                
+                // Auto shift
+                if (this.engineRPM > 7000 && this.gear < 6) {
+                    this.shiftUp();
+                } else if (this.engineRPM < 2000 && this.gear > 1 && this.speed > 10) {
+                    this.shiftDown();
+                }
+                
+                // Engine braking
+                if (this.throttle <= 0 && this.speed > 0) {
+                    this.brake = Math.min(0.2, this.brake);
+                }
+            }
+            
+            calculateForces() {
+                const forces = { x: 0, y: 0, z: 0 };
+                
+                // Engine force
+                const engineCurveIndex = Math.floor((this.engineRPM - 1000) / 1000);
+                const engineMultiplier = this.config.vehicle.engineCurve[engineCurveIndex] || 1;
+                const engineForce = this.throttle * this.config.vehicle.acceleration * engineMultiplier;
+                
+                // Apply nitro boost
+                const nitroBoost = this.nitroActive ? this.config.vehicle.nitroBoost : 1;
+                
+                // Traction control
+                const tractionLimit = this.calculateTraction();
+                const finalEngineForce = Math.min(engineForce * nitroBoost, tractionLimit);
+                
+                // Apply forces in vehicle direction
+                forces.x = Math.sin(this.rotation) * finalEngineForce;
+                forces.y = Math.cos(this.rotation) * finalEngineForce;
+                
+                // Braking force
+                if (this.brake > 0) {
+                    const brakeForce = this.brake * this.config.vehicle.braking;
+                    const brakeDir = this.speed > 0 ? -1 : 1;
+                    forces.x += Math.sin(this.rotation) * brakeForce * brakeDir;
+                    forces.y += Math.cos(this.rotation) * brakeForce * brakeDir;
+                }
+                
+                // Lateral forces (cornering)
+                const lateralForce = this.calculateLateralForce();
+                forces.x += Math.cos(this.rotation) * lateralForce;
+                forces.y -= Math.sin(this.rotation) * lateralForce;
+                
+                // Aerodynamic forces
+                this.calculateAerodynamics();
+                const dragForce = this.drag * this.speed * this.speed * 0.001;
+                forces.x -= Math.sign(this.velocity.x) * dragForce;
+                forces.y -= Math.sign(this.velocity.y) * dragForce;
+                
+                // Downforce
+                forces.z = -this.downforce * this.speed * this.speed * 0.0001;
+                
+                return forces;
+            }
+            
+            calculateTraction() {
+                // Calculate weight transfer
+                const accelerationG = (this.acceleration.x * this.acceleration.x + 
+                                     this.acceleration.y * this.acceleration.y) / 9.82;
+                const weightTransfer = accelerationG * this.centerOfGravity;
+                
+                // Update wheel loads
+                this.wheelLoads[0] = 0.25 - weightTransfer * 0.1; // Front left
+                this.wheelLoads[1] = 0.25 - weightTransfer * 0.1; // Front right
+                this.wheelLoads[2] = 0.25 + weightTransfer * 0.1; // Rear left
+                this.wheelLoads[3] = 0.25 + weightTransfer * 0.1; // Rear right
+                
+                // Calculate traction based on tire temperature and wear
+                let totalTraction = 0;
+                for (let i = 0; i < 4; i++) {
+                    const tempFactor = 1 - Math.abs(this.tireTemperature[i] - 80) / 100;
+                    const wearFactor = this.tireWear[i] / 100;
+                    totalTraction += this.wheelLoads[i] * tempFactor * wearFactor;
+                }
+                
+                return totalTraction * this.config.physics.tireGrip * this.mass * 9.82;
+            }
+            
+            calculateLateralForce() {
+                if (Math.abs(this.speed) < 0.1) return 0;
+                
+                // Slip angle
+                const slipAngle = Math.atan2(this.velocity.x, this.velocity.y) - this.rotation;
+                
+                // Cornering stiffness
+                const corneringStiffness = 5000 * this.config.physics.tireGrip;
+                
+                // Lateral force
+                let lateralForce = corneringStiffness * slipAngle * this.steering;
+                
+                // Check for drift
+                if (Math.abs(slipAngle) > this.config.vehicle.driftThreshold * Math.PI / 180) {
+                    this.isDrifting = true;
+                    this.driftAngle = slipAngle;
+                    lateralForce *= 0.6; // Reduce grip when drifting
+                    
+                    // Update tire temperature and wear
+                    for (let i = 0; i < 4; i++) {
+                        this.tireTemperature[i] = Math.min(120, this.tireTemperature[i] + 0.5);
+                        this.tireWear[i] = Math.max(0, this.tireWear[i] - 0.01);
+                    }
+                } else {
+                    this.isDrifting = false;
+                    this.driftAngle *= 0.9;
+                }
+                
+                return lateralForce;
+            }
+            
+            calculateAerodynamics() {
+                const speedSquared = this.speed * this.speed;
+                
+                // Drag
+                this.drag = this.config.vehicle.dragCoefficient * 0.5 * 1.225; // Air density
+                
+                // Downforce
+                this.downforce = this.config.physics.downforce * speedSquared * 0.001;
+                
+                // Ground effect
+                if (this.position.z < 1) {
+                    this.downforce *= 1.5;
+                }
+            }
+            
+            applyForces(forces, deltaTime) {
+                // Calculate acceleration
+                this.acceleration.x = forces.x / this.mass;
+                this.acceleration.y = forces.y / this.mass;
+                this.acceleration.z = forces.z / this.mass + this.config.physics.gravity;
+                
+                // Update velocity
+                this.velocity.x += this.acceleration.x * deltaTime;
+                this.velocity.y += this.acceleration.y * deltaTime;
+                this.velocity.z += this.acceleration.z * deltaTime;
+                
+                // Apply friction and air resistance
+                const frictionFactor = this.config.physics.friction;
+                const airResistance = this.config.physics.airResistance;
+                
+                this.velocity.x *= Math.pow(airResistance, deltaTime);
+                this.velocity.y *= Math.pow(airResistance, deltaTime);
+                
+                // Update angular velocity
+                const steerAngle = this.steering * Math.min(1, 10 / (this.speed + 1));
+                const targetAngularVelocity = (this.speed / this.wheelBase) * Math.tan(steerAngle);
+                this.angularVelocity += (targetAngularVelocity - this.angularVelocity) * deltaTime * 5;
+                
+                // Apply angular damping
+                this.angularVelocity *= Math.pow(0.9, deltaTime);
+            }
+            
+            updatePosition(deltaTime) {
+                // Update position
+                this.position.x += this.velocity.x * deltaTime;
+                this.position.y += this.velocity.y * deltaTime;
+                this.position.z = Math.max(0, this.position.z + this.velocity.z * deltaTime);
+                
+                // Update rotation
+                this.rotation += this.angularVelocity * deltaTime;
+                
+                // Keep rotation in range
+                while (this.rotation > Math.PI) this.rotation -= Math.PI * 2;
+                while (this.rotation < -Math.PI) this.rotation += Math.PI * 2;
+                
+                // Update speed
+                this.speed = Math.sqrt(this.velocity.x * this.velocity.x + this.velocity.y * this.velocity.y);
+                
+                // Update suspension
+                this.updateSuspension(deltaTime);
+            }
+            
+            updateSuspension(deltaTime) {
+                // Simple suspension simulation
+                for (let i = 0; i < 4; i++) {
+                    const targetCompression = this.wheelLoads[i] * 0.1;
+                    const diff = targetCompression - this.suspensionCompression[i];
+                    this.suspensionCompression[i] += diff * deltaTime * this.config.physics.suspensionStiffness;
+                    
+                    // Apply damping
+                    this.suspensionCompression[i] *= Math.pow(
+                        1 - this.config.physics.suspensionDamping * 0.01, 
+                        deltaTime
+                    );
+                }
+                
+                // Calculate body roll and pitch
+                const roll = (this.suspensionCompression[0] + this.suspensionCompression[2]) -
+                            (this.suspensionCompression[1] + this.suspensionCompression[3]);
+                const pitch = (this.suspensionCompression[0] + this.suspensionCompression[1]) -
+                             (this.suspensionCompression[2] + this.suspensionCompression[3]);
+                
+                // Apply to vehicle position
+                this.position.z += (pitch * 0.1 + roll * 0.05);
+            }
+            
+            updateEffects(deltaTime) {
+                // Update nitro
+                if (this.nitroActive && this.nitroAmount > 0) {
+                    this.nitroAmount = Math.max(0, this.nitroAmount - deltaTime * 20);
+                    if (this.nitroAmount === 0) {
+                        this.nitroActive = false;
+                    }
+                } else if (!this.nitroActive && this.nitroAmount < 100) {
+                    this.nitroAmount = Math.min(100, this.nitroAmount + deltaTime * this.config.vehicle.nitroRecharge);
+                }
+                
+                // Cool down tires
+                for (let i = 0; i < 4; i++) {
+                    this.tireTemperature[i] = Math.max(20, this.tireTemperature[i] - deltaTime * 10);
+                }
+                
+                // Engine damage affects performance
+                if (this.engineDamage > 0) {
+                    this.throttle *= (1 - this.engineDamage / 100);
+                }
+            }
+            
+            checkLimits() {
+                // Speed limiter
+                const maxSpeed = this.config.vehicle.maxSpeed * (this.nitroActive ? this.config.vehicle.nitroBoost : 1);
+                if (this.speed > maxSpeed) {
+                    const scale = maxSpeed / this.speed;
+                    this.velocity.x *= scale;
+                    this.velocity.y *= scale;
+                    this.speed = maxSpeed;
+                }
+                
+                // RPM limiter
+                if (this.engineRPM > 8000) {
+                    this.engineRPM = 8000;
+                    this.throttle = 0; // Cut throttle at redline
+                }
+            }
+            
+            // Control methods
+            setThrottle(value) {
+                this.throttle = Math.max(0, Math.min(1, value));
+                this.brake = 0;
+            }
+            
+            setBrake(value) {
+                this.brake = Math.max(0, Math.min(1, value));
+                this.throttle = 0;
+            }
+            
+            setSteering(value) {
+                this.steering = Math.max(-1, Math.min(1, value));
+            }
+            
+            activateNitro() {
+                if (this.nitroAmount > 10) {
+                    this.nitroActive = true;
+                }
+            }
+            
+            deactivateNitro() {
+                this.nitroActive = false;
+            }
+            
+            shiftUp() {
+                if (this.gear < 6) {
+                    this.gear++;
+                    this.engineRPM *= 0.7; // RPM drop on upshift
+                }
+            }
+            
+            shiftDown() {
+                if (this.gear > 1) {
+                    this.gear--;
+                    this.engineRPM = Math.min(8000, this.engineRPM * 1.4); // RPM increase on downshift
+                }
+            }
+            
+            applyDamage(amount) {
+                this.damage = Math.min(100, this.damage + amount);
+                
+                // Distribute damage
+                if (Math.random() < 0.3) {
+                    this.engineDamage = Math.min(100, this.engineDamage + amount * 0.5);
+                }
+                
+                // Suspension damage
+                const wheel = Math.floor(Math.random() * 4);
+                this.suspensionDamage[wheel] = Math.min(100, this.suspensionDamage[wheel] + amount * 0.3);
+            }
+            
+            reset() {
+                this.position = { x: 0, y: 0, z: 0 };
+                this.velocity = { x: 0, y: 0, z: 0 };
+                this.acceleration = { x: 0, y: 0, z: 0 };
+                this.rotation = 0;
+                this.angularVelocity = 0;
+                this.speed = 0;
+                this.engineRPM = 1000;
+                this.gear = 1;
+                this.throttle = 0;
+                this.brake = 0;
+                this.steering = 0;
+                this.nitroAmount = 100;
+                this.nitroActive = false;
+                this.damage = 0;
+                this.engineDamage = 0;
+                this.suspensionDamage = [0, 0, 0, 0];
+                this.tireTemperature = [20, 20, 20, 20];
+                this.tireWear = [100, 100, 100, 100];
+            }
+        }
+
+        // Enhanced AI System
+        class AIDriver {
+            constructor(vehicle, track, difficulty = 'medium') {
+                this.vehicle = vehicle;
+                this.track = track;
+                this.difficulty = CONFIG.ai.skillLevels[difficulty] || CONFIG.ai.skillLevels.medium;
+                
+                // AI state
+                this.racingLine = this.calculateRacingLine();
+                this.currentTarget = 0;
+                this.lookAheadPoint = 0;
+                
+                // Behavior parameters
+                this.aggressiveness = CONFIG.ai.aggressiveness * this.difficulty.accuracy;
+                this.reactionTime = CONFIG.ai.reactionTime / this.difficulty.speed;
+                this.avoidanceActive = false;
+                
+                // Learning parameters
+                this.lapTimes = [];
+                this.bestLapTime = Infinity;
+                this.mistakes = 0;
+            }
+            
+            calculateRacingLine() {
+                // Calculate optimal racing line through track
+                const line = [];
+                const numPoints = 100;
+                
+                for (let i = 0; i < numPoints; i++) {
+                    const angle = (i / numPoints) * Math.PI * 2;
+                    const radius = 280; // Optimal radius
+                    
+                    // Add some variation for different racing lines
+                    const variation = Math.sin(angle * 3) * CONFIG.ai.racingLineDeviation;
+                    
+                    line.push({
+                        x: Math.cos(angle) * (radius + variation),
+                        y: Math.sin(angle) * (radius + variation) * 0.7,
+                        speed: this.calculateOptimalSpeed(angle)
+                    });
+                }
+                
+                return line;
+            }
+            
+            calculateOptimalSpeed(angle) {
+                // Calculate optimal speed for each point on track
+                const cornerSharpness = Math.abs(Math.sin(angle * 2));
+                const baseSpeed = CONFIG.vehicle.maxSpeed * this.difficulty.speed;
+                return baseSpeed * (1 - cornerSharpness * 0.4);
+            }
+            
+            update(deltaTime, opponents) {
+                // Update look ahead based on speed
+                this.lookAheadPoint = CONFIG.ai.lookAheadDistance * (this.vehicle.speed / 100);
+                
+                // Get target point
+                const target = this.getTargetPoint();
+                
+                // Check for obstacles
+                const avoidance = this.checkAvoidance(opponents);
+                if (avoidance) {
+                    target.x += avoidance.x;
+                    target.y += avoidance.y;
+                    this.avoidanceActive = true;
+                } else {
+                    this.avoidanceActive = false;
+                }
+                
+                // Calculate steering
+                this.calculateSteering(target);
+                
+                // Calculate throttle/brake
+                this.calculateSpeed(target);
+                
+                // Manage nitro
+                this.manageNitro();
+                
+                // Update target
+                this.updateTarget();
+                
+                // Learn from mistakes
+                this.learn();
+            }
+            
+            getTargetPoint() {
+                // Get current target with look ahead
+                const currentIdx = this.currentTarget;
+                const lookAheadIdx = (currentIdx + Math.floor(this.lookAheadPoint / 10)) % this.racingLine.length;
+                
+                return {
+                    x: this.racingLine[lookAheadIdx].x,
+                    y: this.racingLine[lookAheadIdx].y,
+                    speed: this.racingLine[lookAheadIdx].speed
+                };
+            }
+            
+            checkAvoidance(opponents) {
+                let avoidanceVector = { x: 0, y: 0 };
+                
+                opponents.forEach(opponent => {
+                    if (opponent === this.vehicle) return;
+                    
+                    const dx = opponent.position.x - this.vehicle.position.x;
+                    const dy = opponent.position.y - this.vehicle.position.y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    
+                    if (distance < CONFIG.ai.avoidanceRadius) {
+                        // Calculate avoidance force
+                        const force = (CONFIG.ai.avoidanceRadius - distance) / CONFIG.ai.avoidanceRadius;
+                        avoidanceVector.x -= (dx / distance) * force * 20;
+                        avoidanceVector.y -= (dy / distance) * force * 20;
+                    }
+                });
+                
+                return avoidanceVector.x !== 0 || avoidanceVector.y !== 0 ? avoidanceVector : null;
+            }
+            
+            calculateSteering(target) {
+                // Calculate angle to target
+                const dx = target.x - this.vehicle.position.x;
+                const dy = target.y - this.vehicle.position.y;
+                const targetAngle = Math.atan2(dx, dy);
+                
+                // Calculate angle difference
+                let angleDiff = targetAngle - this.vehicle.rotation;
+                while (angleDiff > Math.PI) angleDiff -= Math.PI * 2;
+                while (angleDiff < -Math.PI) angleDiff += Math.PI * 2;
+                
+                // Apply steering with reaction time
+                const steeringInput = Math.max(-1, Math.min(1, angleDiff * 2));
+                const currentSteering = this.vehicle.steering;
+                const steeringDiff = steeringInput - currentSteering;
+                
+                this.vehicle.setSteering(currentSteering + steeringDiff * this.reactionTime);
+            }
+            
+            calculateSpeed(target) {
+                const currentSpeed = this.vehicle.speed;
+                const targetSpeed = target.speed * this.difficulty.speed;
+                const speedDiff = targetSpeed - currentSpeed;
+                
+                // Brake for corners
+                const dx = target.x - this.vehicle.position.x;
+                const dy = target.y - this.vehicle.position.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                
+                if (distance < 50 && speedDiff < -20) {
+                    this.vehicle.setBrake(Math.min(1, -speedDiff / 50));
+                } else if (speedDiff > 5) {
+                    this.vehicle.setThrottle(Math.min(1, speedDiff / 30));
+                } else {
+                    this.vehicle.setThrottle(0.8 * this.difficulty.speed);
+                }
+            }
+            
+            manageNitro() {
+                // Use nitro on straights
+                const steering = Math.abs(this.vehicle.steering);
+                const speed = this.vehicle.speed;
+                const nitroThreshold = CONFIG.vehicle.maxSpeed * 0.8;
+                
+                if (steering < 0.1 && speed > nitroThreshold && this.vehicle.nitroAmount > 30) {
+                    this.vehicle.activateNitro();
+                } else {
+                    this.vehicle.deactivateNitro();
+                }
+            }
+            
+            updateTarget() {
+                // Check if reached current target
+                const dx = this.racingLine[this.currentTarget].x - this.vehicle.position.x;
+                const dy = this.racingLine[this.currentTarget].y - this.vehicle.position.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                
+                if (distance < 30) {
+                    this.currentTarget = (this.currentTarget + 1) % this.racingLine.length;
+                }
+            }
+            
+            learn() {
+                // Simple learning system
+                if (this.vehicle.isDrifting && !this.avoidanceActive) {
+                    this.mistakes++;
+                    
+                    // Adjust aggressiveness based on mistakes
+                    if (this.mistakes > 10) {
+                        this.aggressiveness *= 0.95;
+                        this.mistakes = 0;
+                    }
+                }
+                
+                // Track lap times for improvement
+                if (this.currentTarget === 0) {
+                    const lapTime = this.vehicle.lapTime;
+                    if (lapTime < this.bestLapTime) {
+                        this.bestLapTime = lapTime;
+                        // Increase aggressiveness slightly when improving
+                        this.aggressiveness = Math.min(1, this.aggressiveness * 1.02);
+                    }
+                    this.lapTimes.push(lapTime);
+                }
+            }
+        }
+
+        // Audio System
+        class AudioSystem {
+            constructor() {
+                this.context = null;
+                this.sounds = new Map();
+                this.engines = new Map();
+                this.masterVolume = 1;
+                
+                this.initializeAudio();
+            }
+            
+            async initializeAudio() {
+                try {
+                    this.context = new (window.AudioContext || window.webkitAudioContext)();
+                    
+                    // Create master gain
+                    this.masterGain = this.context.createGain();
+                    this.masterGain.connect(this.context.destination);
+                    
+                    // Create effect nodes
+                    this.createEffects();
+                    
+                    // Load sounds
+                    await this.loadSounds();
+                } catch (error) {
+                    console.warn('Audio initialization failed:', error);
+                }
+            }
+            
+            createEffects() {
+                // Reverb for environment
+                this.convolver = this.context.createConvolver();
+                this.convolver.connect(this.masterGain);
+                
+                // Compressor for dynamics
+                this.compressor = this.context.createDynamicsCompressor();
+                this.compressor.threshold.value = -24;
+                this.compressor.knee.value = 30;
+                this.compressor.ratio.value = 12;
+                this.compressor.attack.value = 0.003;
+                this.compressor.release.value = 0.25;
+                this.compressor.connect(this.masterGain);
+                
+                // Filter for doppler effect
+                this.dopplerFilter = this.context.createBiquadFilter();
+                this.dopplerFilter.type = 'lowpass';
+                this.dopplerFilter.frequency.value = 20000;
+                this.dopplerFilter.connect(this.compressor);
+            }
+            
+            async loadSounds() {
+                // In a real implementation, you would load actual audio files
+                // For now, we'll create synthetic sounds
+                
+                // Engine sound synthesis
+                this.createEngineSounds();
+                
+                // Effect sounds
+                this.createEffectSounds();
+            }
+            
+            createEngineSounds() {
+                // Create engine sound using oscillators
+                const createEngineNode = () => {
+                    const engine = this.context.createOscillator();
+                    const gainNode = this.context.createGain();
+                    const filter = this.context.createBiquadFilter();
+                    
+                    engine.type = 'sawtooth';
+                    filter.type = 'lowpass';
+                    filter.frequency.value = 1000;
+                    filter.Q.value = 10;
+                    
+                    engine.connect(filter);
+                    filter.connect(gainNode);
+                    gainNode.connect(this.dopplerFilter);
+                    
+                    return { oscillator: engine, gain: gainNode, filter: filter };
+                };
+                
+                this.engineNodePool = [];
+                for (let i = 0; i < 4; i++) {
+                    this.engineNodePool.push(createEngineNode());
+                }
+            }
+            
+            createEffectSounds() {
+                // Tire screech
+                this.screechNode = this.context.createOscillator();
+                this.screechGain = this.context.createGain();
+                this.screechFilter = this.context.createBiquadFilter();
+                
+                this.screechNode.type = 'square';
+                this.screechNode.frequency.value = 800;
+                this.screechFilter.type = 'bandpass';
+                this.screechFilter.frequency.value = 1000;
+                this.screechFilter.Q.value = 5;
+                
+                this.screechNode.connect(this.screechFilter);
+                this.screechFilter.connect(this.screechGain);
+                this.screechGain.connect(this.masterGain);
+                this.screechGain.gain.value = 0;
+                
+                // Collision sound
+                this.createCollisionSound();
+                
+                // Nitro sound
+                this.createNitroSound();
+            }
+            
+            createCollisionSound() {
+                // White noise for collision
+                const bufferSize = this.context.sampleRate * 0.1;
+                const buffer = this.context.createBuffer(1, bufferSize, this.context.sampleRate);
+                const data = buffer.getChannelData(0);
+                
+                for (let i = 0; i < bufferSize; i++) {
+                    data[i] = (Math.random() - 0.5) * 2;
+                }
+                
+                this.collisionBuffer = buffer;
+            }
+            
+            createNitroSound() {
+                this.nitroNode = this.context.createOscillator();
+                this.nitroGain = this.context.createGain();
+                this.nitroFilter = this.context.createBiquadFilter();
+                
+                this.nitroNode.type = 'sawtooth';
+                this.nitroNode.frequency.value = 200;
+                this.nitroFilter.type = 'highpass';
+                this.nitroFilter.frequency.value = 500;
+                
+                this.nitroNode.connect(this.nitroFilter);
+                this.nitroFilter.connect(this.nitroGain);
+                this.nitroGain.connect(this.masterGain);
+                this.nitroGain.gain.value = 0;
+            }
+            
+            startEngine(vehicleId) {
+                if (!this.context) return;
+                
+                const engineData = {
+                    nodes: [],
+                    baseFrequency: 100,
+                    isPlaying: false
+                };
+                
+                // Use multiple oscillators for richer sound
+                for (let i = 0; i < 3; i++) {
+                    const node = this.engineNodePool[i];
+                    if (node) {
+                        node.oscillator = this.context.createOscillator();
+                        node.oscillator.type = i === 0 ? 'sawtooth' : 'triangle';
+                        node.oscillator.frequency.value = 100 * (i + 1);
+                        node.oscillator.connect(node.filter);
+                        node.oscillator.start();
+                        node.gain.gain.value = 0.2 / (i + 1);
+                        engineData.nodes.push(node);
+                    }
+                }
+                
+                engineData.isPlaying = true;
+                this.engines.set(vehicleId, engineData);
+            }
+            
+            updateEngine(vehicleId, rpm, speed, throttle) {
+                const engine = this.engines.get(vehicleId);
+                if (!engine || !engine.isPlaying) return;
+                
+                engine.nodes.forEach((node, index) => {
+                    // Update frequency based on RPM
+                    const targetFreq = (rpm / 60) * (index + 1) + 50;
+                    node.oscillator.frequency.setTargetAtTime(targetFreq, this.context.currentTime, 0.05);
+                    
+                    // Update filter based on throttle
+                    const filterFreq = 500 + throttle * 2000 + speed * 10;
+                    node.filter.frequency.setTargetAtTime(filterFreq, this.context.currentTime, 0.05);
+                    
+                    // Update volume
+                    const volume = (0.2 + throttle * 0.3) / (index + 1) * CONFIG.audio.engineVolume;
+                    node.gain.gain.setTargetAtTime(volume, this.context.currentTime, 0.05);
+                });
+            }
+            
+            updateDoppler(listenerVelocity, sourcePosition, sourceVelocity) {
+                if (!this.context) return;
+                
+                // Simple doppler effect
+                const relativeVelocity = sourceVelocity - listenerVelocity;
+                const dopplerShift = 1 + (relativeVelocity / 343); // Speed of sound
+                
+                this.dopplerFilter.frequency.setTargetAtTime(
+                    20000 * Math.min(2, Math.max(0.5, dopplerShift)),
+                    this.context.currentTime,
+                    0.1
+                );
+            }
+            
+            playTireScreech(intensity) {
+                if (!this.context || !this.screechNode) return;
+                
+                this.screechGain.gain.setTargetAtTime(
+                    intensity * 0.3 * CONFIG.audio.sfxVolume,
+                    this.context.currentTime,
+                    0.05
+                );
+                
+                // Vary frequency based on intensity
+                this.screechNode.frequency.setTargetAtTime(
+                    600 + intensity * 400,
+                    this.context.currentTime,
+                    0.05
+                );
+            }
+            
+            playCollision(intensity) {
+                if (!this.context || !this.collisionBuffer) return;
+                
+                const source = this.context.createBufferSource();
+                const gainNode = this.context.createGain();
+                
+                source.buffer = this.collisionBuffer;
+                source.connect(gainNode);
+                gainNode.connect(this.masterGain);
+                
+                gainNode.gain.value = intensity * CONFIG.audio.sfxVolume;
+                source.start();
+            }
+            
+            playNitro(active) {
+                if (!this.context || !this.nitroGain) return;
+                
+                this.nitroGain.gain.setTargetAtTime(
+                    active ? 0.4 * CONFIG.audio.sfxVolume : 0,
+                    this.context.currentTime,
+                    0.1
+                );
+            }
+            
+            setMasterVolume(volume) {
+                this.masterVolume = volume;
+                if (this.masterGain) {
+                    this.masterGain.gain.setTargetAtTime(volume, this.context.currentTime, 0.1);
+                }
+            }
+            
+            resume() {
+                if (this.context && this.context.state === 'suspended') {
+                    this.context.resume();
+                }
+            }
+            
+            cleanup() {
+                // Stop all engines
+                this.engines.forEach(engine => {
+                    engine.nodes.forEach(node => {
+                        if (node.oscillator) {
+                            node.oscillator.stop();
+                        }
+                    });
+                });
+                
+                // Close context
+                if (this.context) {
+                    this.context.close();
+                }
+            }
+        }
+
+        // Input System
+        class InputSystem {
+            constructor() {
+                this.keys = new Map();
+                this.touches = new Map();
+                this.gamepad = null;
+                this.accelerometer = null;
+                
+                // Control states
+                this.controls = {
+                    steering: 0,
+                    throttle: 0,
+                    brake: 0,
+                    nitro: false,
+                    pause: false,
+                    camera: 0
+                };
+                
+                // Touch controls
+                this.stickPosition = { x: 0, y: 0 };
+                this.stickActive = false;
+                
+                this.setupEventListeners();
+                this.setupMobileControls();
+            }
+            
+            setupEventListeners() {
+                // Keyboard
+                window.addEventListener('keydown', (e) => this.onKeyDown(e));
+                window.addEventListener('keyup', (e) => this.onKeyUp(e));
+                
+                // Gamepad
+                window.addEventListener('gamepadconnected', (e) => this.onGamepadConnected(e));
+                window.addEventListener('gamepaddisconnected', (e) => this.onGamepadDisconnected(e));
+                
+                // Accelerometer
+                if (window.DeviceOrientationEvent) {
+                    window.addEventListener('deviceorientation', (e) => this.onDeviceOrientation(e));
+                }
+                
+                // Prevent default touch behaviors
+                document.addEventListener('touchstart', (e) => e.preventDefault(), { passive: false });
+                document.addEventListener('touchmove', (e) => e.preventDefault(), { passive: false });
+            }
+            
+            setupMobileControls() {
+                // Steering stick
+                const stickArea = document.getElementById('steeringStick');
+                const stickKnob = document.getElementById('stickKnob');
+                
+                if (stickArea && stickKnob) {
+                    let stickTouch = null;
+                    
+                    stickArea.addEventListener('touchstart', (e) => {
+                        if (e.touches.length > 0) {
+                            stickTouch = e.touches[0].identifier;
+                            this.stickActive = true;
+                            this.updateStickPosition(e.touches[0], stickArea, stickKnob);
+                            this.vibrate(20);
+                        }
+                    });
+                    
+                    stickArea.addEventListener('touchmove', (e) => {
+                        for (let touch of e.touches) {
+                            if (touch.identifier === stickTouch) {
+                                this.updateStickPosition(touch, stickArea, stickKnob);
+                                break;
+                            }
+                        }
+                    });
+                    
+                    stickArea.addEventListener('touchend', (e) => {
+                        let found = false;
+                        for (let touch of e.touches) {
+                            if (touch.identifier === stickTouch) {
+                                found = true;
+                                break;
+                            }
+                        }
+                        
+                        if (!found) {
+                            this.stickActive = false;
+                            this.stickPosition = { x: 0, y: 0 };
+                            this.controls.steering = 0;
+                            stickKnob.style.transform = 'translate(-50%, -50%)';
+                        }
+                    });
+                }
+                
+                // Gas button
+                this.setupButton('gasBtn', 
+                    () => this.controls.throttle = 1,
+                    () => this.controls.throttle = 0
+                );
+                
+                // Brake button
+                this.setupButton('brakeBtn',
+                    () => this.controls.brake = 1,
+                    () => this.controls.brake = 0
+                );
+                
+                // Nitro button
+                this.setupButton('nitroBtn',
+                    () => this.controls.nitro = true,
+                    () => this.controls.nitro = false
+                );
+            }
+            
+            setupButton(id, onStart, onEnd) {
+                const button = document.getElementById(id);
+                if (!button) return;
+                
+                button.addEventListener('touchstart', (e) => {
+                    e.preventDefault();
+                    onStart();
+                    this.vibrate(20);
+                });
+                
+                button.addEventListener('touchend', (e) => {
+                    e.preventDefault();
+                    onEnd();
+                });
+                
+                // Mouse support for testing
+                button.addEventListener('mousedown', onStart);
+                button.addEventListener('mouseup', onEnd);
+                button.addEventListener('mouseleave', onEnd);
+            }
+            
+            updateStickPosition(touch, stickArea, stickKnob) {
+                const rect = stickArea.getBoundingClientRect();
+                const centerX = rect.left + rect.width / 2;
+                const centerY = rect.top + rect.height / 2;
+                const maxDistance = rect.width / 2 - 10;
+                
+                let x = touch.clientX - centerX;
+                let y = touch.clientY - centerY;
+                
+                const distance = Math.sqrt(x * x + y * y);
+                if (distance > maxDistance) {
+                    x = (x / distance) * maxDistance;
+                    y = (y / distance) * maxDistance;
+                }
+                
+                this.stickPosition = { x: x / maxDistance, y: y / maxDistance };
+                this.controls.steering = this.stickPosition.x;
+                
+                // Update visual position
+                stickKnob.style.transform = `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))`;
+                
+                // Haptic feedback at extremes
+                if (Math.abs(this.stickPosition.x) > 0.9) {
+                    this.vibrate(10);
+                }
+            }
+            
+            onKeyDown(e) {
+                this.keys.set(e.code, true);
+                
+                switch(e.code) {
+                    case 'ArrowLeft':
+                    case 'KeyA':
+                        this.controls.steering = Math.max(-1, this.controls.steering - 0.5);
+                        break;
+                    case 'ArrowRight':
+                    case 'KeyD':
+                        this.controls.steering = Math.min(1, this.controls.steering + 0.5);
+                        break;
+                    case 'ArrowUp':
+                    case 'KeyW':
+                        this.controls.throttle = 1;
+                        break;
+                    case 'ArrowDown':
+                    case 'KeyS':
+                        this.controls.brake = 1;
+                        break;
+                    case 'Space':
+                        this.controls.nitro = true;
+                        break;
+                    case 'Escape':
+                    case 'KeyP':
+                        this.controls.pause = !this.controls.pause;
+                        break;
+                    case 'KeyC':
+                        this.controls.camera = (this.controls.camera + 1) % 3;
+                        break;
+                }
+                
+                e.preventDefault();
+            }
+            
+            onKeyUp(e) {
+                this.keys.set(e.code, false);
+                
+                switch(e.code) {
+                    case 'ArrowLeft':
+                    case 'KeyA':
+                        if (!this.keys.get('ArrowRight') && !this.keys.get('KeyD')) {
+                            this.controls.steering = 0;
+                        }
+                        break;
+                    case 'ArrowRight':
+                    case 'KeyD':
+                        if (!this.keys.get('ArrowLeft') && !this.keys.get('KeyA')) {
+                            this.controls.steering = 0;
+                        }
+                        break;
+                    case 'ArrowUp':
+                    case 'KeyW':
+                        this.controls.throttle = 0;
+                        break;
+                    case 'ArrowDown':
+                    case 'KeyS':
+                        this.controls.brake = 0;
+                        break;
+                    case 'Space':
+                        this.controls.nitro = false;
+                        break;
+                }
+            }
+            
+            onGamepadConnected(e) {
+                this.gamepad = e.gamepad;
+                console.log('Gamepad connected:', this.gamepad.id);
+            }
+            
+            onGamepadDisconnected(e) {
+                this.gamepad = null;
+                console.log('Gamepad disconnected');
+            }
+            
+            onDeviceOrientation(e) {
+                if (CONFIG.controls.accelerometerEnabled && e.gamma !== null) {
+                    // Use device tilt for steering
+                    const tilt = Math.max(-30, Math.min(30, e.gamma));
+                    this.accelerometer = tilt / 30;
+                }
+            }
+            
+            updateGamepad() {
+                if (!this.gamepad) return;
+                
+                // Get latest gamepad state
+                const gamepads = navigator.getGamepads();
+                this.gamepad = gamepads[this.gamepad.index];
+                
+                if (!this.gamepad) return;
+                
+                // Analog sticks
+                this.controls.steering = this.gamepad.axes[0]; // Left stick X
+                
+                // Triggers
+                this.controls.throttle = this.gamepad.buttons[7].value; // RT
+                this.controls.brake = this.gamepad.buttons[6].value; // LT
+                
+                // Buttons
+                this.controls.nitro = this.gamepad.buttons[0].pressed; // A
+                
+                if (this.gamepad.buttons[9].pressed) { // Start
+                    this.controls.pause = true;
+                }
+            }
+            
+            update() {
+                // Update gamepad
+                this.updateGamepad();
+                
+                // Apply accelerometer steering if enabled
+                if (this.accelerometer !== null && !this.stickActive) {
+                    this.controls.steering = this.accelerometer;
+                }
+                
+                // Apply dead zones
+                if (Math.abs(this.controls.steering) < CONFIG.controls.steeringDeadZone) {
+                    this.controls.steering = 0;
+                }
+                
+                // Apply sensitivity
+                this.controls.steering *= CONFIG.controls.steeringSensitivity;
+            }
+            
+            vibrate(duration) {
+                if (CONFIG.controls.hapticFeedback && 'vibrate' in navigator) {
+                    navigator.vibrate(duration * CONFIG.controls.vibrationIntensity);
+                }
+                
+                // Gamepad vibration
+                if (this.gamepad && this.gamepad.vibrationActuator) {
+                    this.gamepad.vibrationActuator.playEffect('dual-rumble', {
+                        startDelay: 0,
+                        duration: duration,
+                        weakMagnitude: 0.5 * CONFIG.controls.vibrationIntensity,
+                        strongMagnitude: 1.0 * CONFIG.controls.vibrationIntensity
+                    });
+                }
+            }
+            
+            getControls() {
+                return this.controls;
+            }
+        }
+
+        // Main Game Class
+        class NeonRacingPro {
+            constructor() {
+                this.state = 'loading';
+                this.lastTime = 0;
+                this.frameTime = 0;
+                this.fps = 0;
+                this.frameCount = 0;
+                this.lastFPSUpdate = 0;
+                
+                // Core systems
+                this.renderer = null;
+                this.audioSystem = null;
+                this.inputSystem = null;
+                
+                // Game data
+                this.vehicles = [];
+                this.player = null;
+                this.track = null;
+                this.raceTimer = 0;
+                this.countdown = 3;
+                this.currentLap = 1;
+                
+                // Initialize
+                this.initialize();
+            }
+            
+            async initialize() {
+                try {
+                    // Show loading screen
+                    this.updateLoadingProgress(0);
+                    
+                    // Initialize renderer
+                    const canvas = document.getElementById('gameCanvas');
+                    this.renderer = new WebGLRenderer(canvas);
+                    this.updateLoadingProgress(30);
+                    
+                    // Initialize audio
+                    this.audioSystem = new AudioSystem();
+                    this.updateLoadingProgress(50);
+                    
+                    // Initialize input
+                    this.inputSystem = new InputSystem();
+                    this.updateLoadingProgress(70);
+                    
+                    // Create game objects
+                    await this.createGameObjects();
+                    this.updateLoadingProgress(90);
+                    
+                    // Setup UI
+                    this.setupUI();
+                    this.updateLoadingProgress(100);
+                    
+                    // Start game loop
+                    setTimeout(() => {
+                        this.hideLoadingScreen();
+                        this.showMainMenu();
+                        this.startGameLoop();
+                    }, 500);
+                    
+                } catch (error) {
+                    console.error('Game initialization failed:', error);
+                    alert('Failed to initialize game. Please refresh the page.');
+                }
+            }
+            
+            updateLoadingProgress(progress) {
+                const progressBar = document.getElementById('loadingProgress');
+                if (progressBar) {
+                    progressBar.style.width = `${progress}%`;
+                }
+            }
+            
+            hideLoadingScreen() {
+                const loadingScreen = document.getElementById('loadingScreen');
+                if (loadingScreen) {
+                    loadingScreen.style.display = 'none';
+                }
+            }
+            
+            showMainMenu() {
+                const mainMenu = document.getElementById('mainMenu');
+                if (mainMenu) {
+                    mainMenu.style.display = 'flex';
+                    this.state = 'menu';
+                }
+            }
+            
+            async createGameObjects() {
+                // Create track
+                this.track = {
+                    checkpoints: [],
+                    boundaries: []
+                };
+                
+                // Add track to scene
+                const trackMesh = this.renderer.createTrackMesh(this.track);
+                if (trackMesh) {
+                    this.renderer.scene.add(trackMesh);
+                }
+                
+                // Create vehicles
+                const startPosition = { x: 280, y: 0 };
+                
+                // Player vehicle
+                const playerVehicle = new VehiclePhysics(CONFIG);
+                playerVehicle.position.x = startPosition.x;
+                playerVehicle.position.y = startPosition.y;
+                playerVehicle.color = 0xff0000;
+                playerVehicle.isPlayer = true;
+                playerVehicle.id = 'player';
+                
+                this.player = playerVehicle;
+                this.vehicles.push(playerVehicle);
+                
+                // Add player model to scene
+                const playerModel = this.renderer.addVehicle(playerVehicle);
+                
+                // AI vehicles
+                const aiColors = [0x00ff00, 0x0000ff, 0xffff00, 0xff00ff];
+                const difficulties = ['easy', 'medium', 'hard', 'expert'];
+                
+                for (let i = 0; i < 4; i++) {
+                    const aiVehicle = new VehiclePhysics(CONFIG);
+                    aiVehicle.position.x = startPosition.x + (i % 2 === 0 ? -10 : 10);
+                    aiVehicle.position.y = startPosition.y - (i + 1) * 15;
+                    aiVehicle.color = aiColors[i];
+                    aiVehicle.id = `ai_${i}`;
+                    
+                    // Create AI driver
+                    aiVehicle.aiDriver = new AIDriver(aiVehicle, this.track, difficulties[i]);
+                    
+                    this.vehicles.push(aiVehicle);
+                    
+                    // Add AI model to scene
+                    this.renderer.addVehicle(aiVehicle);
+                }
+                
+                // Start engine sounds
+                this.vehicles.forEach(vehicle => {
+                    this.audioSystem.startEngine(vehicle.id);
+                });
+            }
+            
+            setupUI() {
+                // Quick Race button
+                document.getElementById('quickRaceBtn').addEventListener('click', () => {
+                    this.startRace();
+                });
+                
+                // Career Mode button
+                document.getElementById('careerBtn').addEventListener('click', () => {
+                    alert('Career Mode coming soon!');
+                });
+                
+                // Garage button
+                document.getElementById('garageBtn').addEventListener('click', () => {
+                    alert('Garage coming soon!');
+                });
+                
+                // Settings button
+                document.getElementById('settingsBtn').addEventListener('click', () => {
+                    alert('Settings coming soon!');
+                });
+                
+                // Pause menu buttons
+                document.getElementById('resumeBtn')?.addEventListener('click', () => {
+                    this.resume();
+                });
+                
+                document.getElementById('restartBtn')?.addEventListener('click', () => {
+                    this.restart();
+                });
+                
+                document.getElementById('quitBtn')?.addEventListener('click', () => {
+                    this.quitToMenu();
+                });
+                
+                // Handle window resize
+                window.addEventListener('resize', () => {
+                    this.renderer.resize();
+                });
+                
+                // Handle visibility change
+                document.addEventListener('visibilitychange', () => {
+                    if (document.hidden && this.state === 'racing') {
+                        this.pause();
+                    }
+                });
+                
+                // RPM bars
+                const rpmBars = document.getElementById('rpmBars');
+                if (rpmBars) {
+                    for (let i = 0; i < 20; i++) {
+                        const bar = document.createElement('div');
+                        bar.className = 'rpm-bar';
+                        rpmBars.appendChild(bar);
+                    }
+                }
+            }
+            
+            startRace() {
+                // Hide menu
+                document.getElementById('mainMenu').style.display = 'none';
+                
+                // Show HUD
+                document.getElementById('gameHUD').style.display = 'block';
+                
+                // Show mobile controls if needed
+                const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+                if (isMobile) {
+                    document.getElementById('mobileControls').style.display = 'flex';
+                    document.getElementById('nitroContainer').style.display = 'block';
+                }
+                
+                // Reset race
+                this.resetRace();
+                
+                // Start countdown
+                this.state = 'countdown';
+                this.showCountdown();
+                
+                // Resume audio
+                this.audioSystem.resume();
+            }
+            
+            resetRace() {
+                // Reset vehicles
+                this.vehicles.forEach((vehicle, index) => {
+                    vehicle.reset();
+                    
+                    // Reset positions
+                    const startPosition = { x: 280, y: 0 };
+                    if (vehicle.isPlayer) {
+                        vehicle.position.x = startPosition.x;
+                        vehicle.position.y = startPosition.y;
+                    } else {
+                        vehicle.position.x = startPosition.x + (index % 2 === 0 ? -10 : 10);
+                        vehicle.position.y = startPosition.y - index * 15;
+                    }
+                });
+                
+                // Reset race data
+                this.raceTimer = 0;
+                this.countdown = 3;
+                this.currentLap = 1;
+            }
+            
+            showCountdown() {
+                const countdownEl = document.getElementById('countdown');
+                if (!countdownEl) return;
+                
+                countdownEl.style.display = 'block';
+                
+                const updateCountdown = () => {
+                    if (this.countdown > 0) {
+                        countdownEl.textContent = Math.ceil(this.countdown);
+                        countdownEl.style.color = '#fff';
+                    } else if (this.countdown > -1) {
+                        countdownEl.textContent = 'GO!';
+                        countdownEl.style.color = '#0f0';
+                        this.state = 'racing';
+                    } else {
+                        countdownEl.style.display = 'none';
+                        return;
+                    }
+                    
+                    // Pulse animation
+                    countdownEl.style.animation = 'none';
+                    setTimeout(() => {
+                        countdownEl.style.animation = 'countPulse 1s ease-out';
+                    }, 10);
+                };
+                
+                updateCountdown();
+                this.countdownInterval = setInterval(updateCountdown, 1000);
+            }
+            
+            pause() {
+                if (this.state !== 'racing') return;
+                
+                this.state = 'paused';
+                document.getElementById('pauseMenu').style.display = 'flex';
+            }
+            
+            resume() {
+                if (this.state !== 'paused') return;
+                
+                this.state = 'racing';
+                document.getElementById('pauseMenu').style.display = 'none';
+            }
+            
+            restart() {
+                document.getElementById('pauseMenu').style.display = 'none';
+                this.resetRace();
+                this.state = 'countdown';
+                this.showCountdown();
+            }
+            
+            quitToMenu() {
+                document.getElementById('pauseMenu').style.display = 'none';
+                document.getElementById('gameHUD').style.display = 'none';
+                document.getElementById('mobileControls').style.display = 'none';
+                document.getElementById('nitroContainer').style.display = 'none';
+                
+                this.showMainMenu();
+                
+                if (this.countdownInterval) {
+                    clearInterval(this.countdownInterval);
+                }
+            }
+            
+            update(deltaTime) {
+                // Update based on game state
+                switch (this.state) {
+                    case 'menu':
+                        // Update menu animations
+                        break;
+                        
+                    case 'countdown':
+                        this.countdown -= deltaTime;
+                        break;
+                        
+                    case 'racing':
+                        this.updateRace(deltaTime);
+                        break;
+                        
+                    case 'paused':
+                        // Game is paused
+                        break;
+                        
+                    case 'finished':
+                        // Race finished
+                        break;
+                }
+                
+                // Always update input
+                this.inputSystem.update();
+                
+               // Check for pause
+if (this.inputSystem.controls.pause && this.state === 'racing') {
+    this.pause();
+}
+
+// Update car physics only when racing
+if (this.state === 'racing' && !this.isPaused) {
+    // Update all cars
+    this.cars.forEach((car, index) => {
+        if (index === 0) {
+            // Player car
+            car.update(this.inputSystem.controls);
+        } else {
+            // AI cars
+            car.updateAI(this.track);
+        }
+        
+        // Check collisions
+        this.checkCollisions(car);
+        
+        // Update lap times
+        this.updateLapTimes(car, index);
+    });
+    
+    // Update camera to follow player
+    this.camera.follow(this.cars[0]);
+    
+    // Update particles and effects
+    this.particleSystem.update();
+    this.updateEffects();
+    
+    // Check race completion
+    if (this.checkRaceComplete()) {
+        this.endRace();
+    }
+}
+
+// Update UI elements
+this.updateUI();
+
+// Render frame
+this.render();
+
+pause() {
+    this.isPaused = true;
+    this.pauseMenu.show();
+    this.audioManager.pauseAll();
+    this.lastPauseTime = Date.now();
+}
+
+resume() {
+    this.isPaused = false;
+    this.pauseMenu.hide();
+    this.audioManager.resumeAll();
+    
+    // Adjust timers for pause duration
+    const pauseDuration = Date.now() - this.lastPauseTime;
+    this.adjustTimers(pauseDuration);
+}
+
+checkCollisions(car) {
+    // Check collision with track boundaries
+    if (this.track.checkBoundaryCollision(car.position)) {
+        car.handleBoundaryCollision();
+        this.particleSystem.createSparks(car.position);
+    }
+    
+    // Check collision with other cars
+    this.cars.forEach(otherCar => {
+        if (car !== otherCar && car.checkCollision(otherCar)) {
+            this.handleCarCollision(car, otherCar);
+        }
+    });
+    
+    // Check collision with track objects
+    this.track.objects.forEach(object => {
+        if (car.checkObjectCollision(object)) {
+            this.handleObjectCollision(car, object);
+        }
+    });
+}
+
+updateLapTimes(car, index) {
+    const checkpoint = this.track.getCheckpoint(car.position);
+    
+    if (checkpoint && !car.checkpoints.includes(checkpoint)) {
+        car.checkpoints.push(checkpoint);
+        
+        // Check if lap completed
+        if (car.checkpoints.length === this.track.totalCheckpoints) {
+            car.completeLap();
+            car.checkpoints = [];
+            
+            // Update lap time display
+            this.ui.updateLapTime(index, car.lastLapTime);
+            
+            // Check if race finished
+            if (car.currentLap > this.totalLaps) {
+                car.finished = true;
+                car.finishTime = this.raceTime;
+                this.finishedCars.push(index);
+            }
+        }
+    }
+}
+
+checkRaceComplete() {
+    // Race is complete when player finishes or all AI cars finish
+    return this.cars[0].finished || this.finishedCars.length === this.cars.length;
+}
+
+endRace() {
+    this.state = 'finished';
+    this.showResults();
+    this.saveHighScore();
+    this.audioManager.playSound('raceComplete');
+}
+
+updateUI() {
+    // Update speedometer
+    this.ui.speedometer.update(this.cars[0].speed);
+    
+    // Update position
+    this.ui.position.update(this.calculatePosition());
+    
+    // Update lap counter
+    this.ui.lapCounter.update(this.cars[0].currentLap, this.totalLaps);
+    
+    // Update race time
+    if (this.state === 'racing' && !this.isPaused) {
+        this.raceTime += this.deltaTime;
+        this.ui.raceTimer.update(this.raceTime);
+    }
+    
+    // Update minimap
+    this.ui.minimap.update(this.cars, this.track);
+}
+
+render() {
+    // Clear canvas
+    this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    
+    // Apply camera transform
+    this.ctx.save();
+    this.camera.apply(this.ctx);
+    
+    // Render track
+    this.track.render(this.ctx);
+    
+    // Render cars with proper z-ordering
+    const sortedCars = [...this.cars].sort((a, b) => a.position.y - b.position.y);
+    sortedCars.forEach(car => {
+        car.render(this.ctx);
+    });
+    
+    // Render particles and effects
+    this.particleSystem.render(this.ctx);
+    this.renderEffects(this.ctx);
+    
+    this.ctx.restore();
+    
+    // Render UI (not affected by camera)
+    this.ui.render(this.ctx);
+    
+    // Render pause overlay if paused
+    if (this.isPaused) {
+        this.renderPauseOverlay();
+    }
+}
+
+renderPauseOverlay() {
+    // Semi-transparent overlay
+    this.ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+    this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+    
+    // Pause text
+    this.ctx.fillStyle = '#00ff00';
+    this.ctx.font = 'bold 48px Arial';
+    this.ctx.textAlign = 'center';
+    this.ctx.fillText('PAUSED', this.canvas.width / 2, this.canvas.height / 2);
+    
+    // Instructions
+    this.ctx.font = '24px Arial';
+    this.ctx.fillText('Press P to Resume', this.canvas.width / 2, this.canvas.height / 2 + 50);
+}
+
+// Additional helper methods
+calculatePosition() {
+    // Calculate player's position in race
+    let position = 1;
+    const playerProgress = this.calculateProgress(this.cars[0]);
+    
+    this.cars.forEach((car, index) => {
+        if (index !== 0) {
+            const aiProgress = this.calculateProgress(car);
+            if (aiProgress > playerProgress) {
+                position++;
+            }
+        }
+    });
+    
+    return position;
+}
+
+calculateProgress(car) {
+    // Calculate total race progress
+    const lapProgress = car.currentLap - 1;
+    const checkpointProgress = car.checkpoints.length / this.track.totalCheckpoints;
+    return lapProgress + checkpointProgress;
+}
+
+handleCarCollision(car1, car2) {
+    // Calculate collision physics
+    const relativeVelocity = car1.velocity.subtract(car2.velocity);
+    const collisionNormal = car1.position.subtract(car2.position).normalize();
+    
+    // Apply impulse
+    const impulse = collisionNormal.multiply(relativeVelocity.dot(collisionNormal) * 0.8);
+    car1.velocity = car1.velocity.subtract(impulse);
+    car2.velocity = car2.velocity.add(impulse);
+    
+    // Create collision effects
+    const collisionPoint = car1.position.add(car2.position).divide(2);
+    this.particleSystem.createImpact(collisionPoint);
+    this.audioManager.playSound('collision');
+    
+    // Apply damage
+    car1.takeDamage(10);
+    car2.takeDamage(10);
+}
+
+handleObjectCollision(car, object) {
+    switch(object.type) {
+        case 'boost':
+            car.applyBoost(object.power);
+            this.audioManager.playSound('boost');
+            object.collected = true;
+            break;
+            
+        case 'oil':
+            car.slip(object.duration);
+            this.audioManager.playSound('slip');
+            break;
+            
+        case 'barrier':
+            car.bounce(object.normal);
+            car.takeDamage(20);
+            this.particleSystem.createSparks(car.position);
+            break;
+    }
+}
+
+updateEffects() {
+    // Update weather effects
+    if (this.weather.active) {
+        this.weather.update();
+        
+        // Apply weather physics
+        if (this.weather.type === 'rain') {
+            this.cars.forEach(car => {
+                car.traction *= 0.85;
+            });
+        } else if (this.weather.type === 'fog') {
+            this.visibility = 0.6;
+        }
+    }
+    
+    // Update track surface effects
+    this.track.surfaceEffects.forEach(effect => {
+        effect.update(this.deltaTime);
+    });
+}
+
+renderEffects(ctx) {
+    // Render skid marks
+    this.cars.forEach(car => {
+        if (car.isSkidding) {
+            car.skidMarks.render(ctx);
+        }
+    });
+    
+    // Render weather
+    if (this.weather.active) {
+        this.weather.render(ctx);
+    }
+    
+    // Render lighting effects
+    if (this.track.hasNightMode) {
+        this.renderLighting(ctx);
+    }
+}
+
+renderLighting(ctx) {
+    // Create gradient for night effect
+    const gradient = ctx.createRadialGradient(
+        this.cars[0].position.x, 
+        this.cars[0].position.y, 
+        100,
+        this.cars[0].position.x, 
+        this.cars[0].position.y, 
+        400
+    );
+    
+    gradient.addColorStop(0, 'rgba(255, 255, 200, 0.3)');
+    gradient.addColorStop(1, 'rgba(0, 0, 50, 0.8)');
+    
+    ctx.save();
+    ctx.globalCompositeOperation = 'multiply';
+    ctx.fillStyle = gradient;
+    ctx.fillRect(-1000, -1000, 3000, 3000);
+    ctx.restore();
+}
+
+showResults() {
+    const resultsHTML = `
+        <div class="results-overlay">
+            <h2>Race Complete!</h2>
+            <div class="results-table">
+                ${this.generateResultsTable()}
+            </div>
+            <div class="results-stats">
+                <p>Best Lap: ${this.formatTime(this.getBestLap())}</p>
+                <p>Top Speed: ${this.getTopSpeed()} km/h</p>
+                <p>Total Time: ${this.formatTime(this.raceTime)}</p>
+            </div>
+            <div class="results-actions">
+                <button onclick="game.restart()">Race Again</button>
+                <button onclick="game.backToMenu()">Main Menu</button>
+            </div>
+        </div>
+    `;
+    
+    document.getElementById('results').innerHTML = resultsHTML;
+    document.getElementById('results').style.display = 'block';
+}
+
+generateResultsTable() {
+    const sorted = this.cars
+        .map((car, index) => ({ car, index, time: car.finishTime || Infinity }))
+        .sort((a, b) => a.time - b.time);
+        
+    return sorted.map((entry, position) => `
+        <tr class="${entry.index === 0 ? 'player-result' : ''}">
+            <td>${position + 1}</td>
+            <td>${entry.index === 0 ? 'You' : `AI ${entry.index}`}</td>
+            <td>${entry.time < Infinity ? this.formatTime(entry.time) : 'DNF'}</td>
+        </tr>
+    `).join('');
+}
+
+formatTime(ms) {
+    const minutes = Math.floor(ms / 60000);
+    const seconds = Math.floor((ms % 60000) / 1000);
+    const milliseconds = Math.floor((ms % 1000) / 10);
+    return `${minutes}:${seconds.toString().padStart(2, '0')}.${milliseconds.toString().padStart(2, '0')}`;
+}
+
+saveHighScore() {
+    const scores = JSON.parse(localStorage.getItem('racingHighScores') || '[]');
+    scores.push({
+        track: this.track.name,
+        time: this.cars[0].finishTime,
+        date: new Date().toISOString()
+    });
+    
+    scores.sort((a, b) => a.time - b.time);
+    scores.splice(10); // Keep top 10
+    
+    localStorage.setItem('racingHighScores', JSON.stringify(scores));
+}
+
+restart() {
+    document.getElementById('results').style.display = 'none';
+    this.init();
+    this.start();
+}
+
+backToMenu() {
+    document.getElementById('results').style.display = 'none';
+    document.getElementById('gameCanvas').style.display = 'none';
+    document.getElementById('mainMenu').style.display = 'block';
+}
+
+destroy() {
+    // Clean up resources
+    this.audioManager.stopAll();
+    this.particleSystem.clear();
+    cancelAnimationFrame(this.animationId);
+    
+    // Remove event listeners
+    this.inputSystem.destroy();
+    
+    // Clear references
+    this.cars = [];
+    this.track = null;
+}
+        }
+
+        // Initialize game when DOM loaded
+        let game;
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            const canvas = document.getElementById('gameCanvas');
+            const ctx = canvas.getContext('2d');
+            
+            // Set canvas size
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            
+            // Handle window resize
+            window.addEventListener('resize', () => {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+            });
+            
+            // Initialize main menu
+            document.getElementById('startButton').addEventListener('click', () => {
+                document.getElementById('mainMenu').style.display = 'none';
+                canvas.style.display = 'block';
+                
+                // Create and start game
+                game = new RacingGame(canvas, ctx);
+                game.init();
+                game.start();
+            });
+            
+            // Handle settings
+            document.getElementById('settingsButton').addEventListener('click', () => {
+                document.getElementById('settingsMenu').style.display = 'block';
+            });
+            
+            document.getElementById('closeSettings').addEventListener('click', () => {
+                document.getElementById('settingsMenu').style.display = 'none';
+            });
+            
+            // Handle high scores
+            document.getElementById('highScoresButton').addEventListener('click', () => {
+                showHighScores();
+            });
+        });
+        
+        function showHighScores() {
+            const scores = JSON.parse(localStorage.getItem('racingHighScores') || '[]');
+            const scoresHTML = scores.map((score, index) => `
+                <tr>
+                    <td>${index + 1}</td>
+                    <td>${score.track}</td>
+                    <td>${formatTime(score.time)}</td>
+                    <td>${new Date(score.date).toLocaleDateString()}</td>
+                </tr>
+            `).join('');
+            
+            document.getElementById('highScoresList').innerHTML = scoresHTML || '<tr><td colspan="4">No high scores yet!</td></tr>';
+            document.getElementById('highScoresMenu').style.display = 'block';
+        }
+        
+        function formatTime(ms) {
+            const minutes = Math.floor(ms / 60000);
+            const seconds = Math.floor((ms % 60000) / 1000);
+            const milliseconds = Math.floor((ms % 1000) / 10);
+            return `${minutes}:${seconds.toString().padStart(2, '0')}.${milliseconds.toString().padStart(2, '0')}`;
+        }
+    </script>   
+</body>
+</html>
